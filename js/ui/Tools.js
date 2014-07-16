@@ -20,20 +20,22 @@ var Tools = (function(){
         selfCesium.north();
       }).on('click', '.map-tool-measure', function(){
 
-        var dom = $(this);
-        if(dom.hasClass('active')){
-          dom.removeClass('active');
-          selfCesium.stopMeasure();
-          selfCesium.clearMeasure();
-          selfCesium.dbclickTofly_enable = true;
-        } else {
-          dom.addClass('active');
-          selfCesium.dbclickTofly_enable = false;
-          selfCesium.startMeasure(function(){
-            dom.removeClass('active');
-            selfCesium.dbclickTofly_enable = true;
-          });
-        }
+        cesiumDrawer.startDrawingPolyline();
+
+        // var dom = $(this);
+        // if(dom.hasClass('active')){
+        //   dom.removeClass('active');
+        //   selfCesium.stopMeasure();
+        //   selfCesium.clearMeasure();
+        //   selfCesium.dbclickTofly_enable = true;
+        // } else {
+        //   dom.addClass('active');
+        //   selfCesium.dbclickTofly_enable = false;
+        //   selfCesium.startMeasure(function(){
+        //     dom.removeClass('active');
+        //     selfCesium.dbclickTofly_enable = true;
+        //   });
+        // }
 
       }).on('click', '.location-images-toggle', function(){
         if(that.toggleLocationImagesBtn.hasClass('open')){

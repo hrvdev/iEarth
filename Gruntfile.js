@@ -3,7 +3,25 @@ module.exports = function(grunt){
     pkg: grunt.file.readJSON('package.json'),
 
     concat: {
-      cesium: {
+      uiSrc: {
+        src: [
+          'js/ui/intro.js',
+
+          'js/ui/Tools.js',
+          'js/ui/canvas.js',
+
+          'js/ui/LocationShower.js',
+
+          'js/ui/MiniMap.js',
+          'js/ui/searchBar.js',
+
+          'js/ui/main.js',
+
+          'js/ui/outro.js'
+        ],
+        dest: 'js/iEarth.ui.src.js'
+      },
+      mapSrc: {
         src: [
           'js/src/intro.js',
 
@@ -20,6 +38,23 @@ module.exports = function(grunt){
           'js/src/outro.js'
         ],
         dest: 'js/iEarth.src.js'
+      },
+      cesiumSrc: {
+        src: [
+          'js/cesiumSrc/intro.js',
+
+          'js/cesiumSrc/utils.js',
+
+          'js/cesiumSrc/default.js',
+
+          'js/cesiumSrc/ChangeablePrimitive.js',
+          'js/cesiumSrc/BillboardGroup.js',
+          'js/cesiumSrc/PolylinePrimitive.js',
+          'js/cesiumSrc/CesiumEditor.js',
+
+          'js/cesiumSrc/outro.js'
+        ],
+        dest: 'js/iEarth.cesium.src.js'
       }
     },
 
@@ -29,13 +64,23 @@ module.exports = function(grunt){
           drop_console: true
         }
       },
-      iEarth: {
+      iEarth_src: {
         options: {
           sourceMap: true,
           sourceMapName: 'js/iEarth.map'
         },
         files: {
           'js/iEarth.min.js': 'js/iEarth.src.js'
+        }
+      },
+
+      cesium_src: {
+        options: {
+          sourceMap: true,
+          sourceMapName: 'js/iEarth.cesium.map'
+        },
+        files: {
+          'js/iEarth.cesium.min.js': 'js/iEarth.cesium.src.js'
         }
       }
     },
@@ -53,7 +98,7 @@ module.exports = function(grunt){
 
     watch: {
       scripts: {
-        files: ['js/src/*.js', 'css/src/*.styl', 'Gruntfile.js'],
+        files: ['js/src/*.js', 'js/cesiumSrc/*.js', 'js/ui/*.js', 'css/src/*.styl', 'Gruntfile.js'],
         tasks: ['concat', 'uglify', 'stylus']
       }
     }

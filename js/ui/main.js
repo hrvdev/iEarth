@@ -7,7 +7,7 @@ var MainUI = function(cesium){
 
   this.searchBar = new SearchBar();
 
-  selfCesium.dbclickTofly();
+  // selfCesium.dbclickTofly();
 };
 
 MainUI.prototype = {

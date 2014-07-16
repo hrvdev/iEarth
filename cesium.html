@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>HRV</title>
+  <link rel="stylesheet" href="lib/Cesium/Widgets/widgets.css">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" type="text/css" href="css/iEarth.min.css" />
+  <style>
+  body{padding:0; margin:0;}
+  .cesium{
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+  }
+  .cesium-widget-credits{display: none;}
+  </style>
+</head>
+<body>
+  <!-- cesium 球容器 -->
+  <div class="cesium" id="cesiumContainer"></div>
+  <!-- /cesium 球容器 -->
+
+  <!-- canvas -->
+  <div class="cesium cesium-canvas-w">
+    <canvas class="cesium cesium-canvas" id="canvas" width="5000" height="3000"></canvas>
+  </div>
+  <!-- /canvas -->
+
+  
+  <!-- 搜索框 -->
+  <div class="search-bar">
+    <input type="text" name="q" id="searchInput" placeholder="请输入地名" />
+    <button id="searchButton">搜索</button>
+  </div>
+  <!-- /搜索框 -->
+
+  <!-- 显示搜索结果 -->
+  <div class="search-result" id="searchResult">
+  </div>
+  <!-- /显示搜索结果 -->
+
+
+  <!-- 显示经纬度 -->
+  <div class="location-show" id="locationShow">
+    <div class="location-icon">
+    </div>
+    <div class="location-lat-lng" id="locationShowC">
+    </div>
+    <div class="location-spliter"></div>
+    <div class="location-close">
+      <span id="locationShowClose"></span>
+    </div>
+  </div>
+  <!-- /显示经纬度 -->
+
+  
+  <!-- 小地图 -->
+  <div class="mini-map" id="miniMap">
+    <div class="mini-map-mask google" id="miniMapSource">iEarth<i></i></div>
+    <div class="mini-map-canvas" id="miniMapCanvas"></div>
+  </div>
+  <!-- /小地图 -->
+
+
+  <!-- 底部工具 -->
+  <div class="tools" id="tools">
+    <div class="map-tools">
+      <div class="map-tool map-tool-location"><span class="icon"></span></div>
+      <div class="map-tool map-tool-addlabel"><span class="icon">T</span></div>
+      <div class="map-tool map-tool-measure"><span class="icon"></span></div>
+      
+      <div class="map-tool map-tool-vector"><span class="icon"></span></div>
+      <div class="map-tool map-tool-terrian"><span class="icon"></span></div>
+
+
+      <div class="map-tool map-tool-settings"><span class="icon"></span></div>
+    </div>
+    <div class="location-images">
+      <div class="location-images-toggle clearfix" id="toggleLocationImagesBtn">
+        <img src="imgs/expand.png" height="25" alt="">
+        <div class="arrow"><span></span></div>
+      </div>
+      <div class="location-images-w">
+        <div class="location-images-container" id="locationImagesContainer">
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /底部工具 -->
+
+  <!-- 影响调节 -->
+  <div class="image-adj">
+    
+  </div>
+  <!-- /影响调节 -->
+
+
+  <!-- 地图管理 -->
+  <div class="layer-manager" style="display:none;" id="layerManager">
+    <div class="layer-manager-t">
+      <h2>打开地图</h2>
+      <span class="layer-manager-close"></span>
+    </div>
+    <div class="layer-manager-c">
+      <div class="layer-manager-row">
+        <div class="checkbox">
+          <span class="checkbox-border"><span class="checkbox-image"></span></span>
+        </div>
+        <div class="icon">
+          <img src="imgs/map_icon_16.png" alt="">
+        </div>
+        <div class="name">
+          北京市所有医院北
+        </div>
+        <div class="time">
+          2013年 7月9日
+        </div>
+        <div class="count">
+          20个标注
+        </div>
+      </div>
+      <div class="layer-manager-row">
+        <div class="checkbox">
+          <span class="checkbox-border"><span class="checkbox-image"></span></span>
+        </div>
+        <div class="icon">
+          <img src="imgs/map_icon_16.png" alt="">
+        </div>
+        <div class="name">
+          北京市所有医院北京市所有医院北京
+        </div>
+        <div class="time">
+          2013年 7月9日
+        </div>
+        <div class="count">
+          20个标注
+        </div>
+      </div>
+    </div>
+    <div class="layer-manager-a">
+      <span class="layer-manager-btn cancel">取消</span>
+      <span class="layer-manager-btn ok disable">选择</span>
+    </div>
+  </div>
+  <!-- /地图管理 -->
+
+
+  <!-- 图层管理 -->
+  <div class="layer-list-manager" id="mapManager" style="display:none;">
+    <div class="layer-list-manager-tbar">
+      <div class="layer-list-manager-t" id="mapTitle">北京市标记</div>
+      <div class="layer-list-manager-bar">
+        <span class="operations"><span></span></span>
+        <span class="add-layer">添加图层</span>
+      </div>
+      <div class="operations-w" style="display:none;" id="mapOperations">
+        <div class="operation create">新建地图</div>
+        <div class="operation open">打开地图</div>
+        <div class="operation delete">删除此地图</div>
+      </div>
+    </div>
+    <div class="layer-list-manager-c" id="mapLayerList">
+    </div>
+  </div>
+  <script type="text/template" id="mapLayerListTemplate">
+    <% _.each(layers, function(layer, layerIndex){  %>
+      <div class="layer-list-manager-layer hide-content">
+        <div class="layer-list-manager-layer-t" data-index="<%= layerIndex + fromIndex %>">
+          <h4><%= layer.name %></h4>
+          <div class="checkbox" data-index="<%= layerIndex %>">
+            <span class="checkbox-border"><span class="checkbox-image"></span></span>
+          </div>
+        </div>
+        <div class="layer-list-manager-layer-c">
+          <% if(layer.objectList.length) { %>
+            <% _.each(layer.objectList, function(obj){ %>
+              <div class="layer-list-manager-layer-i <%= obj.type == 1 ? 'label' : 'polyline' %>">
+                <%= obj.name %>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <div style="margin:0 12px; color:#333; font-size: 13px; text-align:center; line-height:30px;">请创建对象</div>
+          <% } %>
+        </div>
+      </div>
+    <%}); %>
+  </script>
+  <!-- /图层管理 -->
+
+  
+  <!-- 新建地图 -->
+  <div class="map-editor" id="mapEditor" style="display:none;">
+    <span class="layer-manager-close"></span>
+    <div class="title" id="mapEditorTitle">创建地图</div>
+    <div class="input">
+      <input type="text" id="mapEditorInput">
+    </div>
+    <div class="action">
+      <span class="layer-manager-btn ok">保存</span>
+      <span class="layer-manager-btn cancel">取消</span>
+    </div>
+  </div>
+  <!-- /新建地图 -->
+
+
+  <!-- 对象管理 -->
+  <div class="layer-object-mask" style="display:none;">
+    <span class="layer-manager-close"></span>
+    <div class="layer-object-mask-shower" style="display:none">
+      <h5>西直门</h5>
+      <div class="desc">
+        沙拉酱法拉克涉及到法拉克数据地方啦撒大沙拉酱法拉克涉及到法拉克数据地方啦撒大沙拉酱法拉克涉及到法拉克数据地方啦撒大沙拉酱法拉克涉及到法拉克数据地方啦撒大沙拉酱法拉克涉及到法拉克数据地方啦撒大佛sdfasdfasf
+      </div>
+      <div class="action">
+        <span class="delete" title="删除"></span>
+        <span class="edit" title="编辑"></span>
+      </div>
+    </div>
+
+
+    <div class="layer-object-mask-editor">
+      <div class="input-item">
+        <input type="text" id="">
+      </div>
+      <div class="input-item">
+        <textarea id=""></textarea>
+      </div>
+      <div class="action">
+        <span class="layer-manager-btn ok">保存</span>
+        <span class="layer-manager-btn cancel">取消</span>
+      </div>
+    </div>
+
+    <div style="border-top-width: 24px; position: absolute; left: 169px; bottom:2px;"><div style="position: absolute; overflow: hidden; left: -6px; top: -1px; width: 16px; height: 30px;"><div style="position: absolute; left: 6px; -webkit-transform: skewX(22.6deg); -webkit-transform-origin: 0px 0px; height: 24px; width: 10px; box-shadow: rgba(0, 0, 0, 0.6) 0px 1px 6px; background-color: rgb(255, 255, 255);"></div></div><div style="position: absolute; overflow: hidden; top: -1px; left: 10px; width: 16px; height: 30px;"><div style="position: absolute; left: 0px; -webkit-transform: skewX(-22.6deg); -webkit-transform-origin: 10px 0px; height: 24px; width: 10px; box-shadow: rgba(0, 0, 0, 0.6) 0px 1px 6px; background-color: rgb(255, 255, 255);"></div></div></div>
+  </div>
+  <!-- /对象管理 -->
+
+  <script src="lib/Cesium/Cesium.js"></script>
+  
+  <script src="js/setUpCesium.js"></script>
+
+  <script src="lib/jquery/jquery.2.1.1.min.js"></script>
+  <script src="lib/underscore/underscore.js"></script>
+  <script src="js/iEarth.src.js"></script>
+
+  <script src="js/iEarth.cesium.src.js"></script>
+
+  <script src="lib/ocanvas/ocanvas.js"></script>
+
+  <script src="js/cesiumHelper.js"></script>
+  <script src="js/iEarth.ui.src.js"></script>
+</body>
+</html>
