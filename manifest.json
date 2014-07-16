@@ -1,0 +1,19 @@
+{
+  "name": "iEarth",
+  "description": "iEarth Application",
+  "version": "0.1",
+  "manifest_version": 2,
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    }
+  },
+
+  // "sandbox": {
+  //   "pages": ["index.html"]
+  // },
+
+  "permissions": [
+    {"fileSystem": ["write", "retainEntries", "directory"]}
+  ]
+}

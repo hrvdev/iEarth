@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Layer Manager</title>
+  <link rel="stylesheet" type="text/css" href="css/iEarth.min.css" />
+</head>
+<body style="background-color:#688580;">
+
+
+  <!-- 地图管理 -->
+  <div class="layer-manager" style="display:none;" id="layerManager">
+    <div class="layer-manager-t">
+      <h2>打开地图</h2>
+      <span class="layer-manager-close"></span>
+    </div>
+    <div class="layer-manager-c">
+      <div class="layer-manager-row">
+        <div class="checkbox">
+          <span class="checkbox-border"><span class="checkbox-image"></span></span>
+        </div>
+        <div class="icon">
+          <img src="imgs/map_icon_16.png" alt="">
+        </div>
+        <div class="name">
+          北京市所有医院北
+        </div>
+        <div class="time">
+          2013年 7月9日
+        </div>
+        <div class="count">
+          20个标注
+        </div>
+      </div>
+      <div class="layer-manager-row">
+        <div class="checkbox">
+          <span class="checkbox-border"><span class="checkbox-image"></span></span>
+        </div>
+        <div class="icon">
+          <img src="imgs/map_icon_16.png" alt="">
+        </div>
+        <div class="name">
+          北京市所有医院北京市所有医院北京
+        </div>
+        <div class="time">
+          2013年 7月9日
+        </div>
+        <div class="count">
+          20个标注
+        </div>
+      </div>
+    </div>
+    <div class="layer-manager-a">
+      <span class="layer-manager-btn cancel">取消</span>
+      <span class="layer-manager-btn ok disable">选择</span>
+    </div>
+  </div>
+  <!-- /地图管理 -->
+
+
+  <!-- 图层管理 -->
+  <div class="layer-list-manager" id="mapManager" style="display:none;">
+    <div class="layer-list-manager-tbar">
+      <div class="layer-list-manager-t" id="mapTitle">北京市标记</div>
+      <div class="layer-list-manager-bar">
+        <span class="operations"><span></span></span>
+        <span class="add-layer">添加图层</span>
+      </div>
+      <div class="operations-w" style="display:none;" id="mapOperations">
+        <div class="operation create">新建地图</div>
+        <div class="operation open">打开地图</div>
+        <div class="operation delete">删除此地图</div>
+      </div>
+    </div>
+    <div class="layer-list-manager-c" id="mapLayerList">
+    </div>
+  </div>
+  <script type="text/template" id="mapLayerListTemplate">
+    <% _.each(layers, function(layer, layerIndex){  %>
+      <div class="layer-list-manager-layer hide-content">
+        <div class="layer-list-manager-layer-t" data-index="<%= layerIndex + fromIndex %>">
+          <h4><%= layer.name %></h4>
+          <div class="checkbox" data-index="<%= layerIndex %>">
+            <span class="checkbox-border"><span class="checkbox-image"></span></span>
+          </div>
+        </div>
+        <div class="layer-list-manager-layer-c">
+          <% if(layer.objectList.length) { %>
+            <% _.each(layer.objectList, function(obj){ %>
+              <div class="layer-list-manager-layer-i <%= obj.type == 1 ? 'label' : 'polyline' %>">
+                <%= obj.name %>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <div style="margin:0 12px; color:#333; font-size: 13px; text-align:center; line-height:30px;">请创建对象</div>
+          <% } %>
+        </div>
+      </div>
+    <%}); %>
+  </script>
+  <!-- /图层管理 -->
+
+  
+  <!-- 新建地图 -->
+  <div class="map-editor" id="mapEditor" style="display:none;">
+    <span class="layer-manager-close"></span>
+    <div class="title" id="mapEditorTitle">创建地图</div>
+    <div class="input">
+      <input type="text" id="mapEditorInput">
+    </div>
+    <div class="action">
+      <span class="layer-manager-btn ok">保存</span>
+      <span class="layer-manager-btn cancel">取消</span>
+    </div>
+  </div>
+  <!-- /新建地图 -->
+
+
+  <!-- 对象管理 -->
+  <div class="layer-object-mask" style="display:none;">
+    <span class="layer-manager-close"></span>
+    <div class="layer-object-mask-shower" style="display:none">
+      <h5>西直门</h5>
+      <div class="desc">
+        沙拉酱法拉克涉及到法拉克数据地方啦撒大沙拉酱法拉克涉及到法拉克数据地方啦撒大沙拉酱法拉克涉及到法拉克数据地方啦撒大沙拉酱法拉克涉及到法拉克数据地方啦撒大沙拉酱法拉克涉及到法拉克数据地方啦撒大佛sdfasdfasf
+      </div>
+      <div class="action">
+        <span class="delete" title="删除"></span>
+        <span class="edit" title="编辑"></span>
+      </div>
+    </div>
+
+
+    <div class="layer-object-mask-editor">
+      <div class="input-item">
+        <input type="text" id="">
+      </div>
+      <div class="input-item">
+        <textarea id=""></textarea>
+      </div>
+      <div class="action">
+        <span class="layer-manager-btn ok">保存</span>
+        <span class="layer-manager-btn cancel">取消</span>
+      </div>
+    </div>
+
+    <div style="border-top-width: 24px; position: absolute; left: 169px; bottom:2px;"><div style="position: absolute; overflow: hidden; left: -6px; top: -1px; width: 16px; height: 30px;"><div style="position: absolute; left: 6px; -webkit-transform: skewX(22.6deg); -webkit-transform-origin: 0px 0px; height: 24px; width: 10px; box-shadow: rgba(0, 0, 0, 0.6) 0px 1px 6px; background-color: rgb(255, 255, 255);"></div></div><div style="position: absolute; overflow: hidden; top: -1px; left: 10px; width: 16px; height: 30px;"><div style="position: absolute; left: 0px; -webkit-transform: skewX(-22.6deg); -webkit-transform-origin: 10px 0px; height: 24px; width: 10px; box-shadow: rgba(0, 0, 0, 0.6) 0px 1px 6px; background-color: rgb(255, 255, 255);"></div></div></div>
+  </div>
+  <!-- /对象管理 -->
+
+
+
+  
+  <script src="lib/jquery/jquery.2.1.1.min.js"></script>
+  <script src="lib/underscore/underscore.js"></script>
+  <script src="js/iEarth.src.js"></script>
+</body>
+</html>
