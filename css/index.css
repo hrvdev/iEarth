@@ -15,6 +15,7 @@ body{
   right: 0;
   bottom: 0;
   overflow: hidden;
+  cursor: url(http://localhost/~liuqifeng/iEarth/imgs/openhand_8_8.cur) auto;
 }
 .cesium-canvas, .cesium-canvas-w{
   pointer-events: none;

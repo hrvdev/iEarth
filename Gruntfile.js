@@ -25,6 +25,8 @@ module.exports = function(grunt){
         src: [
           'js/src/intro.js',
 
+          'js/src/localStorage.js',
+
           'js/src/utils.js',
           'js/src/EventEmitter.js',
 
@@ -34,6 +36,8 @@ module.exports = function(grunt){
           'js/src/LayerListViewController.js',
 
           'js/src/LayerManager.js',
+
+          'js/src/MapManager.js',
 
           'js/src/outro.js'
         ],

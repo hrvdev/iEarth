@@ -2,22 +2,12 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>HRV</title>
+  <title>iEarth</title>
   <link rel="stylesheet" href="lib/Cesium/Widgets/widgets.css">
   <link rel="stylesheet" href="css/index.css">
   <link rel="stylesheet" type="text/css" href="css/iEarth.min.css" />
   <style>
   body{padding:0; margin:0;}
-  .cesium{
-    padding: 0;
-    margin: 0;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    overflow: hidden;
-  }
   .cesium-widget-credits{display: none;}
   </style>
 </head>
@@ -72,8 +62,6 @@
   <div class="tools" id="tools">
     <div class="map-tools">
       <div class="map-tool map-tool-location"><span class="icon"></span></div>
-      <div class="map-tool map-tool-addlabel"><span class="icon">T</span></div>
-      <div class="map-tool map-tool-measure"><span class="icon"></span></div>
       
       <div class="map-tool map-tool-vector"><span class="icon"></span></div>
       <div class="map-tool map-tool-terrian"><span class="icon"></span></div>
@@ -102,52 +90,49 @@
 
 
   <!-- 地图管理 -->
+  <div class="layer-tools">
+    <div class="layer-tool-group">
+      <div class="layer-tool hand" title="选择内容"></div>
+      <div class="layer-tool label" title="添加标记"></div>
+      <div class="layer-tool polyline" title="绘制线条"></div>
+    </div>
+    <div class="layer-tool-group">
+      <div class="layer-tool measure-distance" title="测距"></div>
+    </div>
+  </div>
   <div class="layer-manager" style="display:none;" id="layerManager">
     <div class="layer-manager-t">
       <h2>打开地图</h2>
       <span class="layer-manager-close"></span>
     </div>
-    <div class="layer-manager-c">
-      <div class="layer-manager-row">
-        <div class="checkbox">
-          <span class="checkbox-border"><span class="checkbox-image"></span></span>
-        </div>
-        <div class="icon">
-          <img src="imgs/map_icon_16.png" alt="">
-        </div>
-        <div class="name">
-          北京市所有医院北
-        </div>
-        <div class="time">
-          2013年 7月9日
-        </div>
-        <div class="count">
-          20个标注
-        </div>
-      </div>
-      <div class="layer-manager-row">
-        <div class="checkbox">
-          <span class="checkbox-border"><span class="checkbox-image"></span></span>
-        </div>
-        <div class="icon">
-          <img src="imgs/map_icon_16.png" alt="">
-        </div>
-        <div class="name">
-          北京市所有医院北京市所有医院北京
-        </div>
-        <div class="time">
-          2013年 7月9日
-        </div>
-        <div class="count">
-          20个标注
-        </div>
-      </div>
+    <div class="layer-manager-c" id="mapListC">
     </div>
     <div class="layer-manager-a">
       <span class="layer-manager-btn cancel">取消</span>
       <span class="layer-manager-btn ok disable">选择</span>
     </div>
   </div>
+  <script type="text/template" id="mapListTemplate">
+    <% _.each(maps, function(map, mapIndex){  %>
+      <div class="layer-manager-row">
+        <div class="checkbox">
+          <span class="checkbox-border"><span class="checkbox-image"></span></span>
+        </div>
+        <div class="icon">
+          <img src="imgs/map_icon_16.png" alt="">
+        </div>
+        <div class="name">
+          <%= map.name %>
+        </div>
+        <div class="time">
+          <%= map.timeStr %>
+        </div>
+        <div class="count">
+          <%= map.layerList.length %>个图层
+        </div>
+      </div>
+    <%}); %>
+  </script>
   <!-- /地图管理 -->
 
 
