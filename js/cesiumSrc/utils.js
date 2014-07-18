@@ -89,6 +89,10 @@ var utils = (function(){
     };
   }
 
+  function uuid(prefix){
+    return prefix + '_' + Date.now() + '_' + Math.random();
+  }
+
   function cartesian2Coord(cartesian, fixedNumber){
     var cartographic = ellipsoid.cartesianToCartographic(cartesian);
     return {
@@ -239,6 +243,7 @@ var utils = (function(){
   }
 
   return {
+    uuid: uuid,
     clone: clone,
     fillOptions: fillOptions,
     copyOptions: copyOptions,

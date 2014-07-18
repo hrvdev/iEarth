@@ -39,7 +39,7 @@ var CesiumEditor = (function(){
   };
 
   CesiumEditor.prototype.nextID = function(){
-    return 'CesiumEditor_id_' + this.idGenerator ++;
+    return 'CesiumEditor_id_' + utils.uuid();
   };
 
   CesiumEditor.prototype.addListener = function(type, callback, context){
@@ -554,10 +554,10 @@ var CesiumEditor = (function(){
           if(index > 0){
             if(index >= positions.length - 1){
               label.setPosition(p2);
-              label.setText('共:' + utils.getTotalDistance(positions, options.unit));
+              label.setText('共:' + utils.getTotalDistance(positions, 'km'));
             } else {
               label.setPosition(p2);
-              label.setText(utils.calDistance(p1.x, p1.y, p2.x, p2.y, options.unit) + ' 共:' + utils.getTotalDistance(positions.slice(0, index + 1), options.unit));
+              label.setText(utils.calDistance(p1.x, p1.y, p2.x, p2.y, 'km') + ' 共:' + utils.getTotalDistance(positions.slice(0, index + 1), 'km'));
             }
             
           }
@@ -577,17 +577,6 @@ var CesiumEditor = (function(){
 
           if(positions.length >= 2){
             poly.setPositions(positions);
-
-            // var p = positions[positions.length - 2];
-
-            // var theLabel = labels.add({
-            //   fillColor: Cesium.Color.fromCssColorString('#fff'),
-            //   show: true,
-            //   font: '16px Helvetica'
-            // });
-            
-            // theLabel.setText(utils.calDistance(cartesian.x, cartesian.y, p.x, p.y, options.unit) + ' 共:' + utils.getTotalDistance(positions, options.unit));
-            // theLabel.setPosition(cartesian);
 
           } else {
             var theLabel = labels.add({
@@ -616,7 +605,7 @@ var CesiumEditor = (function(){
             var p1 = positions[positions.length - 1];
 
             // label.setText(dxdy.toFixed(2) + ' m');
-            label.setText(utils.calDistance(cartesian.x, cartesian.y, p1.x, p1.y, options.unit));
+            label.setText(utils.calDistance(cartesian.x, cartesian.y, p1.x, p1.y, 'km'));
             label.setPosition(cartesian);
 
             cartesian.y += (1 + Math.random());
@@ -635,78 +624,6 @@ var CesiumEditor = (function(){
       that.trigger('measureDistanceFinished');
     }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
-  };
-
-  CesiumEditor.prototype.startDrawingLabel = function(options){
-    var that = this;
-
-    that.startDrawing(function(){
-      mouseHandler.destroy();
-      that.enableMouseEvent();
-      if(input){
-        if(input.value){
-          var theId = that.nextID();
-          var label = new LabelPrimitive({
-            id: theId,
-            text: input.value,
-            position: thePosition
-          });
-          primitives.add(label.getPrimitive());
-
-          that.primitivesCache[theId] = label;
-
-          label.setEditable();
-
-          that.trigger('labelCreated', {id: theId, text: input.value, position: thePosition});
-        } else {
-          that.trigger('labelCreateCancel');
-        }
-        scene.canvas.parentNode.removeChild(input);
-      } else {
-        that.trigger('labelCreateCancel');
-      }
-    });
-
-    var scene = that._scene;
-    var primitives = scene.primitives;
-
-    var input, thePosition;
-
-    var mouseHandler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
-    mouseHandler.setInputAction(function(data){
-      if(data.position != null){
-        // 从鼠标位置转换成笛卡尔坐标
-        var cartesian = scene.camera.pickEllipsoid(data.position, ellipsoid);
-
-        if(cartesian){
-          if(input) return;
-          that.disableMouseEvent();
-          thePosition = cartesian;
-          input = document.createElement('input');
-          input.type = 'text';
-          input.placeholder = '输入名称';
-          input.style.position = 'absolute';
-          input.style.height = '21px';
-          input.style.width = '125px';
-          input.style.top = data.position.y - 6 + 'px';
-          input.style.left = data.position.x + 'px';
-          input.style.opacity = 0.8;
-          scene.canvas.parentNode.insertBefore(input);
-
-          input.addEventListener('keyup', function(e){
-            switch(e.keyCode){
-              case 13:
-              that.stopDrawing();
-              break;
-              case 27:
-              that.stopDrawing();
-              break;
-            }
-          });
-          input.focus();
-        }
-      }
-    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
   };
 
   CesiumEditor.prototype.setObjectToEditMode = function(id){
@@ -748,38 +665,50 @@ var CesiumEditor = (function(){
     }
   };
 
-  CesiumEditor.prototype.flyToExtent = function(extent){
-    var flight = Cesium.CameraFlightPath.createAnimationExtent(this._scene, {
-      destination: extent,
-      duration: 1000
-    });
-    this._scene.animations.add(flight);
-  };
 
-  CesiumEditor.prototype.setSceneMode = function(mode){
+  CesiumEditor.prototype.drawOrShowObject = function(info){
+    var obj = this.primitivesCache[info.id];
+    if(obj){
 
-    var funKey = 'morphTo3D';
+    } else {
 
-    switch(mode){
-      case '3D':
-      funKey = 'morphTo3D';
-      break;
-      case '2D':
-      funKey = 'morphTo2D';
-      break;
-      case 'columbus':
-      funKey = 'morphToColumbusView';
-      break;
-    }
-
-    this.cesiumViewer.sceneTransitioner[funKey]();
-  };
-
-  CesiumEditor.prototype.updatePrimitive = function(id, obj){
-    if(this.primitivesCache[id]){
-      primitiveUpdater.update(this.primitivesCache[id], obj);
     }
   };
+
+  CesiumEditor.prototype.hideObject = function(id){
+    var obj = this.primitivesCache[id];
+    if(obj){
+      console.log(obj);
+      obj.show = false;
+    }
+  };
+
+  // CesiumEditor.prototype.flyToExtent = function(extent){
+  //   var flight = Cesium.CameraFlightPath.createAnimationExtent(this._scene, {
+  //     destination: extent,
+  //     duration: 1000
+  //   });
+  //   this._scene.animations.add(flight);
+  // };
+
+  // CesiumEditor.prototype.setSceneMode = function(mode){
+
+  //   var funKey = 'morphTo3D';
+
+  //   switch(mode){
+  //     case '3D':
+  //     funKey = 'morphTo3D';
+  //     break;
+  //     case '2D':
+  //     funKey = 'morphTo2D';
+  //     break;
+  //     case 'columbus':
+  //     funKey = 'morphToColumbusView';
+  //     break;
+  //   }
+
+  //   this.cesiumViewer.sceneTransitioner[funKey]();
+  // };
 
 
   return CesiumEditor;

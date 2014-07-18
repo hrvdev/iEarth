@@ -90,14 +90,14 @@
 
 
   <!-- 地图管理 -->
-  <div class="layer-tools">
+  <div class="layer-tools" id="layerTools">
     <div class="layer-tool-group">
-      <div class="layer-tool hand" title="选择内容"></div>
-      <div class="layer-tool label" title="添加标记"></div>
-      <div class="layer-tool polyline" title="绘制线条"></div>
+      <div class="layer-tool hand" title="选择内容" id="layerToolsHand"></div>
+      <div class="layer-tool label" title="添加标记" id="layerToolsLabel"></div>
+      <div class="layer-tool polyline" title="绘制线条" id="layerToolsPolyline"></div>
     </div>
     <div class="layer-tool-group">
-      <div class="layer-tool measure-distance" title="测距"></div>
+      <div class="layer-tool measure-distance" title="测距" id="layerToolsDistance"></div>
     </div>
   </div>
   <div class="layer-manager" style="display:none;" id="layerManager">
@@ -182,9 +182,23 @@
   <!-- 新建地图 -->
   <div class="map-editor" id="mapEditor" style="display:none;">
     <span class="layer-manager-close"></span>
-    <div class="title" id="mapEditorTitle">创建地图</div>
+    <div class="title" id="mapEditorTitle"></div>
     <div class="input">
       <input type="text" id="mapEditorInput">
+    </div>
+    <div class="action">
+      <span class="layer-manager-btn ok">保存</span>
+      <span class="layer-manager-btn cancel">取消</span>
+    </div>
+  </div>
+  <!-- /新建地图 -->
+
+  <!-- 修改图层 -->
+  <div class="map-editor" id="layerEditor" style="display:none;">
+    <span class="layer-manager-close"></span>
+    <div class="title">修改图层名称</div>
+    <div class="input">
+      <input type="text" id="layerEditorInput">
     </div>
     <div class="action">
       <span class="layer-manager-btn ok">保存</span>
@@ -200,7 +214,6 @@
     <div class="layer-object-mask-shower" style="display:none">
       <h5>西直门</h5>
       <div class="desc">
-        沙拉酱法拉克涉及到法拉克数据地方啦撒大沙拉酱法拉克涉及到法拉克数据地方啦撒大沙拉酱法拉克涉及到法拉克数据地方啦撒大沙拉酱法拉克涉及到法拉克数据地方啦撒大沙拉酱法拉克涉及到法拉克数据地方啦撒大佛sdfasdfasf
       </div>
       <div class="action">
         <span class="delete" title="删除"></span>
@@ -232,12 +245,12 @@
 
   <script src="lib/jquery/jquery.2.1.1.min.js"></script>
   <script src="lib/underscore/underscore.js"></script>
-  <script src="js/iEarth.src.js"></script>
 
   <script src="js/iEarth.cesium.src.js"></script>
 
   <script src="lib/ocanvas/ocanvas.js"></script>
-
+  
+  <script src="js/iEarth.src.js"></script>
   <script src="js/cesiumHelper.js"></script>
   <script src="js/iEarth.ui.src.js"></script>
 </body>

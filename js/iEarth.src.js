@@ -155,6 +155,53 @@ utils.extend(MapEditor.prototype, {
   }
 });
 
+var LayerEditor = function(){
+  this.dom = $('#layerEditor');
+
+  this.layerEditorInput = $('#layerEditorInput');
+
+  this._bindEvent();
+};
+
+utils.extend(LayerEditor.prototype, {
+  _bindEvent: function(){
+    var that = this;
+
+    that.dom.on('click', '.layer-manager-close', function(){
+      that._hide();
+    }).on('click', '.layer-manager-btn.cancel', function(){
+      that._hide();
+    }).on('click', '.layer-manager-btn.ok', function(){
+      if(that.callback){
+        var layerName = that.layerEditorInput.val().trim() || '未命名的地图';
+        that.callback(layerName);
+      }
+      that._hide();
+    });
+  },
+  _reset: function(layerName){
+    this.layerEditorInput.val(layerName);
+  },
+  _show: function(){
+    var w = win.innerWidth;
+    var h = win.innerHeight;
+
+    this.dom.css('left', (w - 402) / 2).css('top', (h - 172) / 2);
+
+    this.dom.fadeIn(100);
+  },
+  _hide: function(){
+    this.dom.fadeOut(100);
+  },
+  editLayer: function(layerName, callback){
+    this._reset(layerName);
+
+    this.callback = callback;
+
+    this._show();
+  }
+});
+
 var LayerListDataController = (function(){
 
   var ALL_MAP_KEY = 'ALL_MAP';
@@ -322,6 +369,7 @@ var LayerManager = (function(){
 
 
     this.mapEditor = new MapEditor();
+    this.layerEditor = new LayerEditor();
 
     this.layerListDataController = new LayerListDataController();
     this.layerListViewController = new LayerListViewController(this.layerListDataController);
@@ -348,7 +396,10 @@ var LayerManager = (function(){
         if($(this).parent().hasClass('hide-content')){
           $(this).parent().removeClass('hide-content')
         } else {
-          console.log('edit layer');
+          var layerName = $(this).find('h4').html();
+          that.layerEditor.editLayer(layerName, function(newLayerName){
+            that.updateLayerName(newLayerName);
+          });
         }
       }).on('click', '.checkbox', function(e){
         $(this).parent().parent().toggleClass('hide-content');
@@ -359,6 +410,10 @@ var LayerManager = (function(){
           that.currentLayerIndex = $(this).attr('data-index');
 
           $(that.mapLayerList.find('.layer-list-manager-layer')[that.currentLayerIndex]).addClass('selected');
+
+          that.showLayerObjects(that.currentLayerIndex);
+        } else {
+          that.hideLayerObjects(that.currentLayerIndex);
         }
 
         e.stopPropagation();
@@ -410,10 +465,50 @@ var LayerManager = (function(){
           that.layerListDataController.updateMap(that.mapObject);
         });
       });
+
+
+
+
+      win.cesiumDrawer.addListener('polylineCreated', function(data){
+        that._addObject(data.id, '未命名的折线', data.positions);
+      });
     },
     _fillHTML: function(){
       this.mapTitle.html(this.mapObject.name);
       this.mapLayerList.html(this.mapLayerListRender({layers: this.layers, fromIndex: 0}));
+    },
+
+    _addObject: function(id, name, infos){
+      var layerDom = $(this.mapLayerList.children()[this.currentLayerIndex]);
+
+      var theLayer = this.layers[this.currentLayerIndex];
+      theLayer.objectList.push({
+        id: id,
+        name: name,
+        cesiumInfos: infos
+      });
+
+      var layerC = layerDom.find('.layer-list-manager-layer-c');
+      var html = '<div class="layer-list-manager-layer-i polyline" data-id="' + id + '">' + name + '</div>';
+      if(theLayer.objectList.length === 1){
+        layerC.html(html);
+      } else {
+        layerC.append(html);
+      }
+
+      this.layerListDataController.updateMap(this.mapObject);
+    },
+
+    updateLayerName: function(newLayerName){
+      var layerDom = this.mapLayerList.children()[this.currentLayerIndex];
+      var h4 = $(layerDom).find('h4');
+      h4.text(newLayerName);
+
+      this.layers[this.currentLayerIndex].name = newLayerName;
+
+      this.mapObject.layerList = this.layers;
+
+      this.layerListDataController.updateMap(this.mapObject);
     },
 
     showMap: function(mapObject){
@@ -425,7 +520,27 @@ var LayerManager = (function(){
 
       this._fillHTML();
 
+      $(this.mapLayerList.children()[this.currentLayerIndex]).addClass('selected').removeClass('hide-content');
+
       this.dom.fadeIn(100);
+
+      this.showLayerObjects(0);
+    },
+
+    showLayerObjects: function(layerIndex){
+      var layer = this.layers[layerIndex];
+      var objectList = layer.objectList;
+      for(var i = 0; i < objectList.length; i ++){
+        win.cesiumDrawer.drawOrShowObject(objectList[i]);
+      }
+    },
+
+    hideLayerObjects: function(layerIndex){
+      var layer = this.layers[layerIndex];
+      var objectList = layer.objectList;
+      for(var i = 0; i < objectList.length; i ++){
+        win.cesiumDrawer.hideObject(objectList[i].id);
+      }
     },
 
     start: function(){
@@ -441,11 +556,80 @@ var LayerManager = (function(){
 
 })();
 
+var MapTools = (function(){
+  var MapToolsClass = function(){
+
+    this.dom = $('#layerTools');
+
+    this.allTools = this.dom.find('.layer-tool');
+
+    this.layerToolsDistance = $('#layerToolsDistance');
+
+    this.layerToolsPolyline = $('#layerToolsPolyline');
+
+    this.layerToolsLabel = $('#layerToolsLabel');
+
+    this.layerToolsHand = $('#layerToolsHand');
+
+
+
+    this.init();
+  };
+
+
+  utils.extend(MapToolsClass.prototype, {
+    init: function(){
+      this.layerToolsHand.addClass('selected');
+
+      var that = this;
+
+      that.layerToolsHand.on('click', function(){
+        win.uiApp.enableLocationShower = true;
+        that.allTools.removeClass('selected');
+        $(this).addClass('selected');
+      });
+
+      that.layerToolsPolyline.on('click', function(){
+        win.uiApp.enableLocationShower = false;
+        that.allTools.removeClass('selected');
+        $(this).addClass('selected');
+        win.cesiumDrawer.startDrawingPolyline();
+      });
+
+      win.cesiumDrawer.addListener('polylineCreated', function(){
+        win.uiApp.enableLocationShower = true;
+        that.allTools.removeClass('selected');
+        that.layerToolsHand.addClass('selected');
+      });
+
+
+      that.layerToolsDistance.on('click', function(){
+        win.uiApp.enableLocationShower = false;
+        that.allTools.removeClass('selected');
+        $(this).addClass('selected');
+        win.cesiumDrawer.startMeasureDistance();
+      });
+
+      win.cesiumDrawer.addListener('measureDistanceFinished', function(){
+        win.uiApp.enableLocationShower = true;
+        that.allTools.removeClass('selected');
+        that.layerToolsHand.addClass('selected');
+      });
+
+      
+    }
+  });
+
+
+
+  return MapToolsClass;
+})();
+
 
 var layerManager = new LayerManager();
 layerManager.start();
 
-
+var mapTools = new MapTools();
 
 
 

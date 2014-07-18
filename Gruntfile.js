@@ -31,11 +31,14 @@ module.exports = function(grunt){
           'js/src/EventEmitter.js',
 
           'js/src/MapEditor.js',
+          'js/src/LayerEditor.js',
 
           'js/src/LayerListDataController.js',
           'js/src/LayerListViewController.js',
 
           'js/src/LayerManager.js',
+
+          'js/src/MapTools.js',
 
           'js/src/MapManager.js',
 
