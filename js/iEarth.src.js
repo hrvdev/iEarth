@@ -529,9 +529,11 @@ var LayerManager = (function(){
 
     showLayerObjects: function(layerIndex){
       var layer = this.layers[layerIndex];
-      var objectList = layer.objectList;
-      for(var i = 0; i < objectList.length; i ++){
-        win.cesiumDrawer.drawOrShowObject(objectList[i]);
+      if(layer){
+        var objectList = layer.objectList;
+        for(var i = 0; i < objectList.length; i ++){
+          win.cesiumDrawer.drawOrShowObject(objectList[i]);
+        }
       }
     },
 

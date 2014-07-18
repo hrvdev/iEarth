@@ -669,16 +669,26 @@ var CesiumEditor = (function(){
   CesiumEditor.prototype.drawOrShowObject = function(info){
     var obj = this.primitivesCache[info.id];
     if(obj){
-
+      obj.show = true;
     } else {
 
+      var scene = this._scene;
+      var primitives = scene.primitives;
+
+      var polyline = new PolylinePrimitive(Default.defaultPolylineOptions);
+      polyline.id = info.id;
+      polyline.positions = info.cesiumInfos;
+      primitives.add(polyline);
+
+      polyline.setEditable();
+
+      this.primitivesCache[info.id] = polyline;
     }
   };
 
   CesiumEditor.prototype.hideObject = function(id){
     var obj = this.primitivesCache[id];
     if(obj){
-      console.log(obj);
       obj.show = false;
     }
   };
