@@ -98,6 +98,188 @@ var EventEmitter = (function(){
 
 })();
 
+var UserLoginRegister = (function(){
+
+  var USER_LIST_KEY = 'USER_LIST';
+  var CURRENT_USER_KEY = 'CURRENT_USER';
+
+
+  var UserLoginRegisterClass = function(){
+    this.dom = $('#userLoginRegister');
+
+    this.currentUser = null;
+
+    this.userLoginRegisterError = $('#userLoginRegisterError');
+    this.userLoginRegisterUsername = $('#userLoginRegisterUsername');
+    this.userLoginRegisterPassword = $('#userLoginRegisterPassword');
+
+    this._bindEvent();
+  };
+
+
+  utils.extend(UserLoginRegisterClass.prototype, {
+    _bindEvent: function(){
+      var that = this;
+
+      that.dom.on('click', '.layer-manager-close', function(){
+        that._hide();
+      }).on('click', '.submit', function(){
+
+        that._doLogin();
+
+      }).on('click', '.register', function(){
+
+        that._doRegister();
+
+      });
+
+      that.userLoginRegisterUsername.on('focus', function(){
+        that.userLoginRegisterError.hide();
+      });
+
+      that.userLoginRegisterPassword.on('focus', function(){
+        that.userLoginRegisterError.hide();
+      });
+    },
+    _reset: function(){
+      this.userLoginRegisterUsername.val('');
+      this.userLoginRegisterPassword.val('');
+    },
+    _show: function(){
+      var h = win.innerHeight;
+
+      this.dom.css('top', (h - 350) / 2);
+
+      this.dom.fadeIn(100);
+    },
+    _doLogin: function(){
+      if(this._validate()){
+        var username = this.userLoginRegisterUsername.val().trim('');
+        var password = this.userLoginRegisterPassword.val().trim('');
+
+        if(this._isValid(username, password)){
+          if(this.callback){
+            this.callback(this.currentUser);
+            this._hide();
+          }
+        } else {
+          this.userLoginRegisterError.html('用户名或密码错误').show();
+        }
+      } else {
+        this.userLoginRegisterError.html('用户名、密码不能为空').show();
+      }
+    },
+    _doRegister: function(){
+      if(this._validate()){
+        var username = this.userLoginRegisterUsername.val().trim('');
+        var password = this.userLoginRegisterPassword.val().trim('');
+
+        if(this._isExists(username)){
+          this.userLoginRegisterError.html('用户名已存在').show();
+        } else {
+          var userid = this._saveUser(username, password);
+          storage.setItem(CURRENT_USER_KEY, userid);
+          if(this.callback){
+            this.callback({
+              userid: userid,
+              username: username,
+              password: password
+            });
+            this._hide();
+          }
+        }
+      } else {
+        this.userLoginRegisterError.html('用户名、密码不能为空').show();
+      }
+    },
+    _isValid: function(username, password){
+      var userList = storage.getItem(USER_LIST_KEY);
+      if(userList){
+        userList = JSON.parse(userList);
+        for(var i = 0; i < userList.length; i ++){
+          if(userList[i].username === username && userList[i].password === password){
+            this.currentUser = userList[i];
+            storage.setItem(CURRENT_USER_KEY, userList[i].userid);
+            return true;
+          }
+        }
+        return false;
+      } else {
+        return false;
+      }
+    },
+    _isExists: function(username){
+      var userList = storage.getItem(USER_LIST_KEY);
+      if(userList){
+        userList = JSON.parse(userList);
+        for(var i = 0; i < userList.length; i ++){
+          if(userList[i].username === username){
+            return true;
+          }
+        }
+        return false;
+      } else {
+        return false;
+      }
+    },
+    _saveUser: function(username, password){
+      var userList = storage.getItem(USER_LIST_KEY);
+      if(userList){
+        userList = JSON.parse(userList);
+      } else {
+        userList = [];
+      }
+      var userid = utils.uuid('USER_');
+      userList.push({
+        userid: userid,
+        username: username,
+        password: password
+      });
+      storage.setItem(USER_LIST_KEY, JSON.stringify(userList));
+      return userid;
+    },
+    _validate: function(){
+      var username = this.userLoginRegisterUsername.val().trim('');
+      var password = this.userLoginRegisterPassword.val().trim('');
+      if(username && password){
+        return true;
+      } else {
+        return false;
+      }
+    },
+    _hide: function(){
+      this.dom.fadeOut(100);
+    },
+    autoLogin: function(){
+      var currentUserID = storage.getItem(CURRENT_USER_KEY);
+      var userList = storage.getItem(USER_LIST_KEY);
+      if(userList && currentUserID){
+        userList = JSON.parse(userList);
+        for(var i = 0; i < userList.length; i ++){
+          if(userList[i].userid === currentUserID){
+            return userList[i];
+          }
+        }
+        return null;
+      } else {
+        return null;
+      }
+    },
+    login: function(callback){
+      this.callback = callback;
+
+      this._reset();
+      this._show();
+    },
+    logout: function(){
+      storage.removeItem(CURRENT_USER_KEY);
+    }
+  });
+
+
+  return UserLoginRegisterClass;
+})();
+
 var MapEditor = function(){
   this.dom = $('#mapEditor');
 
@@ -204,27 +386,35 @@ utils.extend(LayerEditor.prototype, {
 
 var LayerListDataController = (function(){
 
-  var ALL_MAP_KEY = 'ALL_MAP';
+  var ALL_MAP_KEY = 'ALL_MAP_';
 
   var MAP_LAYER_KEY = 'MAP_';
 
-  var LAST_MAP_KEY = 'LAST_MAP';
+  var LAST_MAP_KEY = 'LAST_MAP_';
 
   var MAP_ID_PREFIX = 'MAP_ID';
 
   var LayerListDataControllerClass = function(){
+    this.userid = null;
+
+
     this.allMaps = [];
 
-    var allMapsStr = storage.getItem(ALL_MAP_KEY);
-    if(allMapsStr){
-      this.allMaps = JSON.parse(allMapsStr);
-    }
+    
   };
 
 
   utils.extend(LayerListDataControllerClass.prototype, {
+    setUserid: function(userid){
+      this.userid = userid;
+
+      var allMapsStr = storage.getItem(ALL_MAP_KEY + userid);
+      if(allMapsStr){
+        this.allMaps = JSON.parse(allMapsStr);
+      }
+    },
     getLastEditMap: function(){
-      var lastMap = storage.getItem(LAST_MAP_KEY);
+      var lastMap = storage.getItem(LAST_MAP_KEY + this.userid);
       if(lastMap){
         this.currentEditMap = this.getMap(lastMap);
       } else {
@@ -234,7 +424,7 @@ var LayerListDataController = (function(){
       return this.currentEditMap;
     },
     setDefaultMap: function(mapId){
-      storage.setItem(LAST_MAP_KEY, mapId);
+      storage.setItem(LAST_MAP_KEY + this.userid, mapId);
     },
     createDefaultMap: function(){
       
@@ -252,12 +442,15 @@ var LayerListDataController = (function(){
         id: utils.uuid(MAP_ID_PREFIX),
         name: name,
         ctime: Date.now(),
-        layerList: []
+        layerList: [{
+          name: '未命名的图层',
+          objectList: []
+        }]
       };
 
       this.allMaps.splice(0, 0, map.id);
 
-      storage.setItem(ALL_MAP_KEY, JSON.stringify(this.allMaps));
+      storage.setItem(ALL_MAP_KEY + this.userid, JSON.stringify(this.allMaps));
 
       storage.setItem(MAP_LAYER_KEY + map.id, JSON.stringify(map));
 
@@ -378,6 +571,10 @@ var LayerManager = (function(){
 
     this.mapLayerListRender = _.template($('#mapLayerListTemplate').html());
 
+    this.userLoginRegister = new UserLoginRegister();
+
+    this._autoLogin();
+
     this._bindEvent();
   };
 
@@ -466,7 +663,13 @@ var LayerManager = (function(){
         });
       });
 
+      $('#loginTrigger').on('click', function(){
+        that._login();
+      });
 
+      $('#logoutTrigger').on('click', function(){
+        that._logout();
+      });
 
 
       win.cesiumDrawer.addListener('polylineCreated', function(data){
@@ -499,6 +702,13 @@ var LayerManager = (function(){
       this.layerListDataController.updateMap(this.mapObject);
     },
 
+    _autoLogin: function(){
+      var userObj = this.userLoginRegister.autoLogin();
+      if(userObj){
+        this._onUserLogin(userObj);
+      }
+    },
+
     updateLayerName: function(newLayerName){
       var layerDom = this.mapLayerList.children()[this.currentLayerIndex];
       var h4 = $(layerDom).find('h4');
@@ -527,6 +737,16 @@ var LayerManager = (function(){
       this.showLayerObjects(0);
     },
 
+    removeAllObjects: function(){
+      for(var i = 0; i < this.layers.length; i ++){
+        var layer = this.layers[i];
+        var objectList = layer.objectList;
+        for(var i = 0; i < objectList.length; i ++){
+          win.cesiumDrawer.removeObject(objectList[i].id);
+        }
+      }
+    },
+
     showLayerObjects: function(layerIndex){
       var layer = this.layers[layerIndex];
       if(layer){
@@ -545,9 +765,39 @@ var LayerManager = (function(){
       }
     },
 
-    start: function(){
+    _onUserLogin: function(userObj){
+      $('#usernameSpan').text(userObj.username);
+      $('#loginTrigger').hide();
+      $('#userPanel').show();
+
+
+      this.layerListDataController.setUserid(userObj.userid);
+
       var lastEditMap = this.layerListDataController.getLastEditMap();
       this.showMap(lastEditMap);
+
+      $('.search-bar').css('left', 330);
+      $('#layerTools').show();
+    },
+    _logout: function(){
+      this.userLoginRegister.logout();
+      $('#loginTrigger').show();
+      $('#userPanel').hide();
+
+      $('.search-bar').css('left', 30);
+      $('#layerTools').hide();
+      this.dom.fadeOut(100);
+
+      this.removeAllObjects();
+    },
+    _login: function(){
+      var that = this;
+      that.userLoginRegister.login(function(user){
+        that._onUserLogin(user);
+      });
+    },
+
+    start: function(){
     }
 
     

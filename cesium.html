@@ -48,7 +48,35 @@
     </div>
   </div>
   <!-- /显示经纬度 -->
+  
+  <!-- 用户 -->
+  <div class="user-info">
+    <div class="user-login" id="loginTrigger">我的地图</div>
+    <div class="user-map" id="userPanel" style="display:none;">
+      <span class="user" id="usernameSpan"></span>
+      <span class="logout" id="logoutTrigger">退出</span>
+    </div>
+  </div>
+  <!-- /用户 -->
 
+  <!-- 用户登录和注册 -->
+  <div class="user-login-reg" id="userLoginRegister" style="display:none;">
+    <span class="layer-manager-close"></span>
+    <div class="user-login-c">
+      <div class="user-login-t">
+        请登录您的帐号<font style="font-size:13px;">(也可以直接注册)</font>
+      </div>
+      <div class="user-login-error" style="display:none;" id="userLoginRegisterError">
+      </div>
+      <div class="user-login-form">
+        <input type="text" class="username" placeholder="用户名" id="userLoginRegisterUsername">
+        <input type="password" class="password" placeholder="密码" id="userLoginRegisterPassword">
+        <button class="submit">登录</button>
+        <button class="register">注册</button>
+      </div>
+    </div>
+  </div>
+  <!-- /用户登录和注册 -->
   
   <!-- 小地图 -->
   <div class="mini-map" id="miniMap">
@@ -90,7 +118,7 @@
 
 
   <!-- 地图管理 -->
-  <div class="layer-tools" id="layerTools">
+  <div class="layer-tools" id="layerTools" style="display:none;">
     <div class="layer-tool-group">
       <div class="layer-tool hand" title="选择内容" id="layerToolsHand"></div>
       <div class="layer-tool label" title="添加标记" id="layerToolsLabel"></div>

@@ -640,17 +640,17 @@ var CesiumEditor = (function(){
     }
   };
 
-  CesiumEditor.prototype.removeObj = function(id){
+  CesiumEditor.prototype.removeObject = function(id){
     var obj = this.primitivesCache[id];
     if(obj){
       this.disableAllEditMode();
       var scene = this._scene;
       var primitives = scene.primitives;
-      if(obj instanceof LabelPrimitive || obj instanceof ArrowPrimitive){
-        primitives.remove(obj.getPrimitive());
-      } else {
+      // if(obj instanceof LabelPrimitive){
+      //   primitives.remove(obj.getPrimitive());
+      // } else {
         primitives.remove(obj);
-      }
+      // }
       delete this.primitivesCache[id];
     }
   };

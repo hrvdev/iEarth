@@ -30,6 +30,8 @@ module.exports = function(grunt){
           'js/src/utils.js',
           'js/src/EventEmitter.js',
 
+          'js/src/userLoginRegister.js',
+
           'js/src/MapEditor.js',
           'js/src/LayerEditor.js',
 
