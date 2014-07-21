@@ -280,6 +280,110 @@ var UserLoginRegister = (function(){
   return UserLoginRegisterClass;
 })();
 
+var Settings = (function(){
+
+  var label = {
+    color: '#FFFFFF',
+    fontSize: 12
+  };
+
+  var polyline = {
+    color: '#000000',
+    width: 2
+  };
+
+  var SettingsClass = function(){
+    this.dom = $('#cesiumSettings');
+
+    this.settingsLabelColorInput = $('#settingsLabelColorInput');
+    this.settingsLabelColorPicker = $('#settingsLabelColorPicker');
+    this.settingsLabelFontSizeInput = $('#settingsLabelFontSizeInput');
+
+    this.settingsPolylineColorInput = $('#settingsPolylineColorInput');
+    this.settingsPolylineColorPicker = $('#settingsPolylineColorPicker');
+    this.settingsPolylineWidthInput = $('#settingsPolylineWidthInput');
+
+    this._bindEvent();
+  };
+
+  SettingsClass.label = label;
+  SettingsClass.polyline = polyline;
+
+
+  utils.extend(SettingsClass.prototype, {
+    _fillDefalut: function(){
+      this.settingsLabelColorInput.val(label.color);
+      this.settingsLabelColorPicker.css('background-color', label.color);
+      this.settingsLabelFontSizeInput.val(label.fontSize);
+
+      this.settingsPolylineColorInput.val(polyline.color);
+      this.settingsPolylineColorPicker.css('background-color', polyline.color);
+      this.settingsPolylineWidthInput.val(polyline.width);
+    },
+    _bindEvent: function(){
+      var that = this;
+
+      that.dom.on('click', '.layer-manager-close', function(){
+        that._hide();
+      }).on('click', '.layer-manager-btn.cancel', function(){
+        that._hide();
+      }).on('click', '.layer-manager-btn.ok', function(){
+        label.color = that.settingsLabelColorInput.val();
+        label.fontSize = that.settingsLabelFontSizeInput.val();
+        polyline.color = that.settingsPolylineColorInput.val();
+        polyline.width = that.settingsPolylineWidthInput.val();
+
+        win.CesiumDefault.setDefaultPolyline(polyline.width, $.colpick.hexToRgb(polyline.color));
+
+        that._hide();
+      });
+
+      that.settingsLabelColorPicker.colpick({
+        color: that.settingsLabelColorInput.val(),
+        submit: false,
+        onChange: function(value){
+          that.settingsLabelColorInput.val('#' + $.colpick.hsbToHex(value));
+          that.settingsLabelColorPicker.css('background-color', '#' + $.colpick.hsbToHex(value));
+        }
+      });
+      that.settingsLabelColorInput.on('blur', function(){
+        that.settingsLabelColorPicker.css('background-color', $(this).val());
+      });
+
+
+      that.settingsPolylineColorPicker.colpick({
+        color: that.settingsPolylineColorInput.val(),
+        submit: false,
+        onChange: function(value){
+          that.settingsPolylineColorInput.val('#' + $.colpick.hsbToHex(value));
+          that.settingsPolylineColorPicker.css('background-color', '#' + $.colpick.hsbToHex(value));
+        }
+      });
+      that.settingsPolylineColorInput.on('blur', function(){
+        that.settingsPolylineColorPicker.css('background-color', $(this).val());
+      });
+    },
+    _show: function(){
+      var h = win.innerHeight;
+
+      this._fillDefalut();
+
+      this.dom.css('top', (h - 350) / 2);
+
+      this.dom.fadeIn(100);
+    },
+    _hide: function(){
+      this.dom.fadeOut(100);
+    },
+    modifySettings: function(){
+      this._show();
+    }
+  });
+
+
+  return new SettingsClass;
+})();
+
 var MapEditor = function(){
   this.dom = $('#mapEditor');
 
@@ -673,7 +777,8 @@ var LayerManager = (function(){
 
 
       win.cesiumDrawer.addListener('polylineCreated', function(data){
-        that._addObject(data.id, '未命名的折线', data.positions);
+        console.log(data);
+        that._addObject(data.id, '未命名的折线', data.info);
       });
     },
     _fillHTML: function(){
@@ -868,7 +973,9 @@ var MapTools = (function(){
         that.layerToolsHand.addClass('selected');
       });
 
-      
+      $('#layerToolsSettings').on('click', function(){
+        Settings.modifySettings();
+      });
     }
   });
 

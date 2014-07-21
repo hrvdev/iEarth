@@ -145,7 +145,9 @@ var Default = (function(){
     defaultPolygonOptions: defaultPolygonOptions,
     defaultCircleOptions: defaultCircleOptions,
     defaultEllipseOptions: defaultEllipseOptions,
-    defaultPolylineOptions: defaultPolylineOptions,
+    defaultPolylineOptions: function(){
+      return defaultPolylineOptions;
+    },
     defaultDrawingArrowOptions: defaultDrawingArrowOptions,
     defaultBillboard: defaultBillboard,
     dragBillboard: dragBillboard,
@@ -153,7 +155,37 @@ var Default = (function(){
     defaultLabelOptions: defaultLabelOptions,
     defaultArrowOptions: defaultArrowOptions,
     defaultMeasurePolylineOptions: defaultMeasurePolylineOptions,
-    defaultRadiusPolylineOptions: defaultRadiusPolylineOptions
+    defaultRadiusPolylineOptions: defaultRadiusPolylineOptions,
+
+    setDefaultPolyline: function(width, color){
+      var outlineMaterial = Cesium.Material.fromType(Cesium.Material.ColorType);
+      outlineMaterial.uniforms.color = new Cesium.Color(color.r / 255, color.g / 255, color.b / 255, 1.0);
+      defaultPolylineOptions = utils.copyOptions(defaultShapeOptions, {
+        width: width,
+        geodesic: true,
+        granularity: 10000,
+        appearance: new Cesium.PolylineMaterialAppearance({
+          aboveGround : false
+        }),
+        material : outlineMaterial
+      });
+    },
+    createPolyline: function(width, color){
+      var outlineMaterial = Cesium.Material.fromType(Cesium.Material.ColorType);
+      outlineMaterial.uniforms.color = new Cesium.Color(color.red, color.green, color.blue, 1.0);
+      var polylineOptions = utils.copyOptions(defaultShapeOptions, {
+        width: width,
+        geodesic: true,
+        granularity: 10000,
+        appearance: new Cesium.PolylineMaterialAppearance({
+          aboveGround : false
+        }),
+        material : outlineMaterial
+      });
+      return polylineOptions;
+    }
   };
 
 })();
+
+window.CesiumDefault = Default;

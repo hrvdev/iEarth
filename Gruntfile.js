@@ -31,6 +31,7 @@ module.exports = function(grunt){
           'js/src/EventEmitter.js',
 
           'js/src/userLoginRegister.js',
+          'js/src/settings.js',
 
           'js/src/MapEditor.js',
           'js/src/LayerEditor.js',

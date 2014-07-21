@@ -6,6 +6,8 @@
   <link rel="stylesheet" href="lib/Cesium/Widgets/widgets.css">
   <link rel="stylesheet" href="css/index.css">
   <link rel="stylesheet" type="text/css" href="css/iEarth.min.css" />
+  <link rel="stylesheet" type="text/css" href="lib/jquery/jquery.beautySelect.css" />
+  <link rel="stylesheet" type="text/css" href="lib/colorpicker/css/colpick.css" />
   <style>
   body{padding:0; margin:0;}
   .cesium-widget-credits{display: none;}
@@ -127,6 +129,9 @@
     <div class="layer-tool-group">
       <div class="layer-tool measure-distance" title="测距" id="layerToolsDistance"></div>
     </div>
+    <div class="layer-tool-group">
+      <div class="layer-tool settings" title="配置" id="layerToolsSettings"></div>
+    </div>
   </div>
   <div class="layer-manager" style="display:none;" id="layerManager">
     <div class="layer-manager-t">
@@ -235,6 +240,65 @@
   </div>
   <!-- /新建地图 -->
 
+  <!-- 默认配置 -->
+  <div class="cesium-settings" id="cesiumSettings" style="display:none;">
+    <span class="layer-manager-close"></span>
+    <div class="cesium-settings-title">
+      设置
+    </div>
+    <div class="cesium-settings-c">
+      <div class="cesium-settings-g">
+        <div class="cesium-settings-t">标记</div>
+        <div class="cesium-settings-i">
+          <div class="cesium-settings-label">颜色</div>
+          <div class="cesium-settings-val">
+            <input type="text" id="settingsLabelColorInput" />
+            <span class="cesium-settings-color-picker" id="settingsLabelColorPicker"></span>
+          </div>
+          <div style="clear:both;"></div>
+        </div>
+        <!-- <div class="cesium-settings-i">
+          <div class="cesium-settings-label">字体</div>
+          <div class="cesium-settings-val">
+            
+          </div>
+          <div style="clear:both;"></div>
+        </div> -->
+        <div class="cesium-settings-i">
+          <div class="cesium-settings-label">大小</div>
+          <div class="cesium-settings-val">
+            <input type="text" id="settingsLabelFontSizeInput">
+          </div>
+          <div style="clear:both;"></div>
+        </div>
+      </div>
+
+      <div class="cesium-settings-g">
+        <div class="cesium-settings-t">折线</div>
+        <div class="cesium-settings-i">
+          <div class="cesium-settings-label">颜色</div>
+          <div class="cesium-settings-val">
+            <input type="text" id="settingsPolylineColorInput" />
+            <span class="cesium-settings-color-picker" id="settingsPolylineColorPicker"></span>
+          </div>
+          <div style="clear:both;"></div>
+        </div>
+        <div class="cesium-settings-i">
+          <div class="cesium-settings-label">粗细</div>
+          <div class="cesium-settings-val">
+            <input type="text" id="settingsPolylineWidthInput">
+          </div>
+          <div style="clear:both;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="action">
+      <span class="layer-manager-btn ok">保存</span>
+      <span class="layer-manager-btn cancel">取消</span>
+    </div>
+  </div>
+  <!-- /默认配置 -->
+
 
   <!-- 对象管理 -->
   <div class="layer-object-mask" style="display:none;">
@@ -272,6 +336,8 @@
   <script src="js/setUpCesium.js"></script>
 
   <script src="lib/jquery/jquery.2.1.1.min.js"></script>
+  <script src="lib/colorpicker/js/colpick.js"></script>
+  <script src="lib/jquery/jquery.beautySelect.js"></script>
   <script src="lib/underscore/underscore.js"></script>
 
   <script src="js/iEarth.cesium.src.js"></script>

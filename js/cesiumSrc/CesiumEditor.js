@@ -39,7 +39,7 @@ var CesiumEditor = (function(){
   };
 
   CesiumEditor.prototype.nextID = function(){
-    return 'CesiumEditor_id_' + utils.uuid();
+    return 'CesiumEditor_id_' + utils.uuid('ce');
   };
 
   CesiumEditor.prototype.addListener = function(type, callback, context){
@@ -387,7 +387,7 @@ var CesiumEditor = (function(){
   };
 
   CesiumEditor.prototype.startDrawingPolyline = function() {
-    var options = utils.copyOptions({}, Default.defaultPolylineOptions);
+    var options = utils.copyOptions({}, Default.defaultPolylineOptions());
     this.startDrawingPolyshape(false, options);
   };
 
@@ -415,7 +415,7 @@ var CesiumEditor = (function(){
     if(isPolygon){
       poly = new Cesium.Polygon(options);
     } else {
-      poly = new PolylinePrimitive(Default.defaultPolylineOptions);
+      poly = new PolylinePrimitive(Default.defaultPolylineOptions());
     }
 
     poly.asynchronous = false;
@@ -492,7 +492,8 @@ var CesiumEditor = (function(){
 
               that.trigger('polygonCreated', {id: theId, positions: positions});
             } else {
-              var polyline = new PolylinePrimitive(Default.defaultPolylineOptions);
+              var options = Default.defaultPolylineOptions();
+              var polyline = new PolylinePrimitive(options);
               polyline.id = theId;
               polyline.positions = positions;
               primitives.add(polyline);
@@ -500,7 +501,7 @@ var CesiumEditor = (function(){
               polyline.setEditable();
 
               that.primitivesCache[theId] = polyline;
-              that.trigger('polylineCreated', {id: theId, positions: positions});
+              that.trigger('polylineCreated', {id: theId, info: {positions: positions, width: options.width, color: options.material.uniforms.color}});
             }
           }
         }
@@ -604,7 +605,6 @@ var CesiumEditor = (function(){
           if(cartesian){
             var p1 = positions[positions.length - 1];
 
-            // label.setText(dxdy.toFixed(2) + ' m');
             label.setText(utils.calDistance(cartesian.x, cartesian.y, p1.x, p1.y, 'km'));
             label.setPosition(cartesian);
 
@@ -635,8 +635,6 @@ var CesiumEditor = (function(){
       obj.setEditMode(true);
     } else if(obj instanceof LabelPrimitive){
       obj.label.setEditMode(true);
-    } else if(obj instanceof ArrowPrimitive){
-      obj.polyline.setEditMode(true);
     }
   };
 
@@ -675,9 +673,11 @@ var CesiumEditor = (function(){
       var scene = this._scene;
       var primitives = scene.primitives;
 
-      var polyline = new PolylinePrimitive(Default.defaultPolylineOptions);
+      console.log(info);
+
+      var polyline = new PolylinePrimitive(Default.createPolyline(info.cesiumInfos.width, info.cesiumInfos.color));
       polyline.id = info.id;
-      polyline.positions = info.cesiumInfos;
+      polyline.positions = info.cesiumInfos.positions;
       primitives.add(polyline);
 
       polyline.setEditable();
