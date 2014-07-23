@@ -1700,11 +1700,11 @@ var CesiumEditor = (function(){
       this.disableAllEditMode();
       var scene = this._scene;
       var primitives = scene.primitives;
-      // if(obj instanceof LabelPrimitive){
-      //   primitives.remove(obj.getPrimitive());
-      // } else {
+      if(obj instanceof LabelPrimitive){
+        primitives.remove(obj.getPrimitive());
+      } else {
         primitives.remove(obj);
-      // }
+      }
       delete this.primitivesCache[id];
     }
   };
@@ -1731,7 +1731,11 @@ var CesiumEditor = (function(){
   CesiumEditor.prototype.drawOrShowObject = function(info){
     var obj = this.primitivesCache[info.id];
     if(obj){
-      obj.show = true;
+      if(obj instanceof LabelPrimitive){
+        obj.getPrimitive().get(0).setShow(true);
+      } else {
+        obj.show = true;
+      }
     } else {
 
       var scene = this._scene;
@@ -1758,15 +1762,18 @@ var CesiumEditor = (function(){
         label.setEditable();
         this.primitivesCache[info.id] = label;
       }
-
-      
     }
   };
 
   CesiumEditor.prototype.hideObject = function(id){
     var obj = this.primitivesCache[id];
     if(obj){
-      obj.show = false;
+      if(obj instanceof LabelPrimitive){
+        obj.getPrimitive().get(0).setShow(false);
+      } else {
+        obj.show = false;
+      }
+      
     }
   };
 
