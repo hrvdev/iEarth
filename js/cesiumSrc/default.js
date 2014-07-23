@@ -123,11 +123,9 @@ var Default = (function(){
 
   var defaultLabelOptions = {
     font: {
-      height: 16,
-      name: "微软雅黑"
+      height: 16
     },
-    fillColor: 'yellow',
-    outlineWidth: 2.0,
+    fillColor: '#ffffff',
     scale: 1.0
   };
 
@@ -157,6 +155,11 @@ var Default = (function(){
     defaultArrowOptions: defaultArrowOptions,
     defaultMeasurePolylineOptions: defaultMeasurePolylineOptions,
     defaultRadiusPolylineOptions: defaultRadiusPolylineOptions,
+
+    setDefaultLabel: function(fontSize, color){
+      defaultLabelOptions.font.height = fontSize;
+      defaultLabelOptions.fillColor = color;
+    },
 
     setDefaultPolyline: function(width, color){
       var outlineMaterial = Cesium.Material.fromType(Cesium.Material.ColorType);

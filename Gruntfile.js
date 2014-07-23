@@ -58,6 +58,7 @@ module.exports = function(grunt){
           'js/cesiumSrc/default.js',
 
           'js/cesiumSrc/ChangeablePrimitive.js',
+          'js/cesiumSrc/LabelPrimitive.js',
           'js/cesiumSrc/BillboardGroup.js',
           'js/cesiumSrc/PolylinePrimitive.js',
           'js/cesiumSrc/CesiumEditor.js',

@@ -198,7 +198,7 @@
         <div class="layer-list-manager-layer-c">
           <% if(layer.objectList.length) { %>
             <% _.each(layer.objectList, function(obj){ %>
-              <div class="layer-list-manager-layer-i <%= obj.type == 1 ? 'label' : 'polyline' %>">
+              <div class="layer-list-manager-layer-i <%= obj.type %>">
                 <%= obj.name %>
               </div>
             <% }); %>

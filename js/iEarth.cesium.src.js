@@ -389,11 +389,9 @@ var Default = (function(){
 
   var defaultLabelOptions = {
     font: {
-      height: 16,
-      name: "微软雅黑"
+      height: 16
     },
-    fillColor: 'yellow',
-    outlineWidth: 2.0,
+    fillColor: '#ffffff',
     scale: 1.0
   };
 
@@ -423,6 +421,11 @@ var Default = (function(){
     defaultArrowOptions: defaultArrowOptions,
     defaultMeasurePolylineOptions: defaultMeasurePolylineOptions,
     defaultRadiusPolylineOptions: defaultRadiusPolylineOptions,
+
+    setDefaultLabel: function(fontSize, color){
+      defaultLabelOptions.font.height = fontSize;
+      defaultLabelOptions.fillColor = color;
+    },
 
     setDefaultPolyline: function(width, color){
       var outlineMaterial = Cesium.Material.fromType(Cesium.Material.ColorType);
@@ -592,6 +595,68 @@ var ChangeablePrimitive = (function() {
     }
 
     return _;
+})();
+
+var LabelPrimitive = (function(){
+
+  var ellipsoid = Cesium.Ellipsoid.WGS84;
+
+  var LabelPrimitiveClass = function LabelPrimitiveClass(options){
+    options = utils.copyOptions(options, Default.defaultLabelOptions());
+
+    utils.fillOptions(this, options);
+
+    var labels = new Cesium.LabelCollection();
+    var fontObj = options.font || {};
+    var fontStr = (fontObj.height || 12) + 'px ' + (fontObj.name || 'Helvetica');
+
+    var label = labels.add({
+      position: options.position,
+      text: options.text,
+      font: fontStr,
+      fillColor : Cesium.Color.fromCssColorString(options.fillColor),
+      style : Cesium.LabelStyle.FILL,
+      scale: options.scale
+    });
+
+    this.primitive = labels;
+    this.label = label;
+  };
+
+  LabelPrimitiveClass.prototype.getPrimitive = function(){
+    return this.primitive;
+  };
+
+  LabelPrimitiveClass.prototype.getExtent = function(){
+    var pos = this.label.getPosition();
+    
+    var pos1 = {};
+    pos1.x = pos.x + 100;
+    pos1.y = pos.y + 100;
+    pos1.z = pos.z;
+
+    var pos2 = {};
+    pos2.x = pos.x + 100;
+    pos2.y = pos.y - 100;
+    pos2.z = pos.z;
+
+    var pos3 = {};
+    pos3.x = pos.x - 100;
+    pos3.y = pos.y + 100;
+    pos3.z = pos.z;
+
+    var pos4 = {};
+    pos4.x = pos.x - 100;
+    pos4.y = pos.y - 100;
+    pos4.z = pos.z;
+
+
+    return Cesium.Extent.fromCartographicArray(ellipsoid.cartesianArrayToCartographicArray([pos1, pos2, pos3, pos4]));
+  };
+
+
+
+  return LabelPrimitiveClass;
 })();
 
 var BillboardGroup = (function(){
@@ -1118,6 +1183,113 @@ var CesiumEditor = (function(){
       }
     };
 
+
+    LabelPrimitive.prototype.setEditable = function(){
+      if(this.setEditMode) {
+        return;
+      }
+
+      var thatLabel = this;
+
+      var label = this.label;
+      var scene = cesiumEditor._scene;
+      label.id = thatLabel.id;
+
+      cesiumEditor.registerEditableShape(label);
+      
+      label.setEditMode = function(editMode) {
+        // if no change
+        if(this._editMode == editMode) {
+          return;
+        }
+        
+        cesiumEditor.disableAllHighlights();
+        
+        // display markers
+        if(editMode) {
+          // make sure all other shapes are not in edit mode before starting the editing of this shape
+          cesiumEditor.setEdited(this);
+          var _self = this;
+
+          if(this._markers == null) {
+            var markers = new BillboardGroup(cesiumEditor, Default.dragBillboard);
+          
+            var handleMarkerChanges = {
+              dragHandlers: {
+                onDrag: function(index, position) {
+                  _self.setPosition(position);
+                },
+                onDragEnd: function(index, position) {
+                  cesiumEditor.trigger('edited', {
+                    id: thatLabel.id,
+                    position: position
+                  });
+                }
+              }
+            };
+          
+            markers.addBillboards([this.getPosition()], handleMarkerChanges);
+            this._markers = markers;
+            // add a handler for clicking in the globe
+            this._globeClickhandler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
+            this._globeClickhandler.setInputAction(function (movement) {
+              var pickedObject = scene.pick(movement.position);
+              if(!(pickedObject && pickedObject.primitive)) {
+                _self.setEditMode(false);
+              }
+            }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+            // set on top of the polygon
+            markers.setOnTop();
+          }
+          this._editMode = true;
+        } else {
+          if(this._markers != null) {
+            this._markers.remove();
+            this._markers = null;
+            this._globeClickhandler.destroy();
+          }
+          this._editMode = false;
+        }
+      }
+
+      var originalWidth = label.getOutlineWidth();
+      var originalScale = label.getScale();
+
+      label.setHighlighted = function(highlighted){
+        var scene = cesiumEditor._scene;
+
+        // if no change
+        // if already highlighted, the outline polygon will be available
+        if(this._highlighted && this._highlighted == highlighted) {
+          return;
+        }
+        
+        // disable if already in edit mode
+        if(this._editMode === true) {
+          return;
+        }
+        
+        this._highlighted = highlighted;
+        
+        // highlight by creating an outline polygon matching the polygon points
+        if(highlighted) {
+          // make sure all other shapes are not highlighted
+          cesiumEditor.setHighlighted(this);
+          this.setOutlineWidth(this.getOutlineWidth() * 2);
+          this.setScale(this.getScale() + 0.2);
+        } else {
+          this.setOutlineWidth(this.getOutlineWidth() / 2);
+          this.setScale(this.getScale() - 0.2);
+        }
+      };
+
+      utils.enhanceWithListeners(label);
+
+      label.setEditMode(false);
+    };
+
+
     Cesium.Billboard.prototype.setEditable = function(){};
 
     PolylinePrimitive.prototype.setEditable = function(){
@@ -1315,6 +1487,84 @@ var CesiumEditor = (function(){
     }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
   };
 
+
+  CesiumEditor.prototype.startDrawingLabel = function(options){
+    var that = this;
+
+    that.startDrawing(function(){
+      mouseHandler.destroy();
+      that.enableMouseEvent();
+      if(input){
+        if(input.value){
+          var theId = that.nextID();
+          var label = new LabelPrimitive({
+            id: theId,
+            text: input.value,
+            position: thePosition
+          });
+          primitives.add(label.getPrimitive());
+
+          that.primitivesCache[theId] = label;
+
+          label.setEditable();
+
+          that.trigger('labelCreated', {id: theId, text: input.value, position: thePosition, fillColor: Default.defaultLabelOptions().fillColor});
+        } else {
+          that.trigger('labelCreateCancel');
+        }
+        scene.canvas.parentNode.removeChild(input);
+      } else {
+        that.trigger('labelCreateCancel');
+      }
+    });
+
+    var scene = that._scene;
+    var primitives = scene.primitives;
+
+    var input, thePosition;
+
+    var mouseHandler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
+    mouseHandler.setInputAction(function(data){
+      if(data.position != null){
+        // 从鼠标位置转换成笛卡尔坐标
+        var cartesian = scene.camera.pickEllipsoid(data.position, ellipsoid);
+
+        if(cartesian){
+          if(input) return;
+          that.disableMouseEvent();
+          thePosition = cartesian;
+          input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = '输入名称';
+          input.style.position = 'absolute';
+          input.style.height = '21px';
+          input.style.width = '125px';
+          input.style.top = data.position.y - 6 + 'px';
+          input.style.left = data.position.x + 'px';
+          input.style.backgroundColor = 'rgba(0,0,0,0)';
+          input.style.outline = 'none';
+          input.style.border = 'none';
+          input.style.borderBottom = '1px solid #fff';
+          input.style.color = 'white';
+
+          scene.canvas.parentNode.insertBefore(input);
+
+          input.addEventListener('keyup', function(e){
+            switch(e.keyCode){
+              case 13:
+              that.stopDrawing();
+              break;
+              case 27:
+              that.stopDrawing();
+              break;
+            }
+          });
+          input.focus();
+        }
+      }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+  };
+
   CesiumEditor.prototype.startMeasureDistance = function(options){
     var that = this;
 
@@ -1487,14 +1737,29 @@ var CesiumEditor = (function(){
       var scene = this._scene;
       var primitives = scene.primitives;
 
-      var polyline = new PolylinePrimitive(Default.createPolyline(info.cesiumInfos.width, info.cesiumInfos.color));
-      polyline.id = info.id;
-      polyline.positions = info.cesiumInfos.positions;
-      primitives.add(polyline);
+      if(info.type === 'polyline'){
+        var polyline = new PolylinePrimitive(Default.createPolyline(info.cesiumInfos.width, info.cesiumInfos.color));
+        polyline.id = info.id;
+        polyline.positions = info.cesiumInfos.positions;
+        primitives.add(polyline);
 
-      polyline.setEditable();
+        polyline.setEditable();
 
-      this.primitivesCache[info.id] = polyline;
+        this.primitivesCache[info.id] = polyline;
+      } else if(info.type === 'label'){
+        var label = new LabelPrimitive({
+          id: info.id,
+          text: info.cesiumInfos.text,
+          position: info.cesiumInfos.position,
+          fillColor: info.cesiumInfos.fillColor
+        });
+
+        primitives.add(label.getPrimitive());
+        label.setEditable();
+        this.primitivesCache[info.id] = label;
+      }
+
+      
     }
   };
 

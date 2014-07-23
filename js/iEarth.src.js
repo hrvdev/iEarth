@@ -284,7 +284,7 @@ var Settings = (function(){
 
   var label = {
     color: '#FFFFFF',
-    fontSize: 12
+    fontSize: 16
   };
 
   var polyline = {
@@ -334,6 +334,7 @@ var Settings = (function(){
         polyline.width = that.settingsPolylineWidthInput.val();
 
         win.CesiumDefault.setDefaultPolyline(polyline.width, $.colpick.hexToRgb(polyline.color));
+        win.CesiumDefault.setDefaultLabel(label.fontSize, label.color);
 
         that._hide();
       });
@@ -801,10 +802,19 @@ var LayerManager = (function(){
 
 
       win.cesiumDrawer.addListener('polylineCreated', function(data){
-        that._addObject(data.id, '未命名的折线', data.info);
+        that._addObject(data.id, '未命名的折线', data.info, 'polyline');
       });
       win.cesiumDrawer.addListener('edited', function(data){
-        that._updateObject(data.id, data.positions);
+        if(data.positions){
+          that._updateObject(data.id, data.positions, 'positions');
+        } else {
+          that._updateObject(data.id, data.position, 'position');
+        }
+        
+      });
+
+      win.cesiumDrawer.addListener('labelCreated', function(data){
+        that._addObject(data.id, data.text, {text: data.text, position: data.position, fillColor: data.fillColor}, 'label');
       });
     },
     _fillHTML: function(){
@@ -812,18 +822,19 @@ var LayerManager = (function(){
       this.mapLayerList.html(this.mapLayerListRender({layers: this.layers, fromIndex: 0}));
     },
 
-    _addObject: function(id, name, infos){
+    _addObject: function(id, name, infos, type){
       var layerDom = $(this.mapLayerList.children()[this.currentLayerIndex]);
 
       var theLayer = this.layers[this.currentLayerIndex];
       theLayer.objectList.push({
         id: id,
         name: name,
+        type: type,
         cesiumInfos: infos
       });
 
       var layerC = layerDom.find('.layer-list-manager-layer-c');
-      var html = '<div class="layer-list-manager-layer-i polyline" data-id="' + id + '">' + name + '</div>';
+      var html = '<div class="layer-list-manager-layer-i ' + type + '" data-id="' + id + '">' + name + '</div>';
       if(theLayer.objectList.length === 1){
         layerC.html(html);
       } else {
@@ -833,12 +844,12 @@ var LayerManager = (function(){
       this.layerListDataController.updateMap(this.mapObject);
     },
 
-    _updateObject: function(id, positions){
+    _updateObject: function(id, value, key){
       for(var i = 0; i < this.layers.length; i ++){
         var layer = this.layers[i];
         for(var j = 0; j < layer.objectList.length; j ++){
           if(layer.objectList[j].id === id){
-            layer.objectList[j].cesiumInfos.positions = positions;
+            layer.objectList[j].cesiumInfos[key] = value;
           }
         }
       }
@@ -986,6 +997,25 @@ var MapTools = (function(){
         win.uiApp.enableLocationShower = true;
         that.allTools.removeClass('selected');
         $(this).addClass('selected');
+      });
+
+      that.layerToolsLabel.on('click', function(){
+        win.uiApp.enableLocationShower = false;
+        that.allTools.removeClass('selected');
+        $(this).addClass('selected');
+        win.cesiumDrawer.startDrawingLabel();
+      });
+
+      win.cesiumDrawer.addListener('labelCreated', function(){
+        win.uiApp.enableLocationShower = true;
+        that.allTools.removeClass('selected');
+        that.layerToolsHand.addClass('selected');
+      });
+
+      win.cesiumDrawer.addListener('labelCreateCancel', function(){
+        win.uiApp.enableLocationShower = true;
+        that.allTools.removeClass('selected');
+        that.layerToolsHand.addClass('selected');
       });
 
       that.layerToolsPolyline.on('click', function(){
