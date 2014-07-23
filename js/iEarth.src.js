@@ -443,7 +443,7 @@ utils.extend(MapEditor.prototype, {
 
 var LayerEditor = function(){
   this.dom = $('#layerEditor');
-
+  this.layerEditorTitle = $('#layerEditorTitle');
   this.layerEditorInput = $('#layerEditorInput');
 
   this._bindEvent();
@@ -465,8 +465,9 @@ utils.extend(LayerEditor.prototype, {
       that._hide();
     });
   },
-  _reset: function(layerName){
+  _reset: function(layerName, editTitle){
     this.layerEditorInput.val(layerName);
+    this.layerEditorTitle.text(editTitle);
   },
   _show: function(){
     var w = win.innerWidth;
@@ -479,8 +480,8 @@ utils.extend(LayerEditor.prototype, {
   _hide: function(){
     this.dom.fadeOut(100);
   },
-  editLayer: function(layerName, callback){
-    this._reset(layerName);
+  editLayer: function(layerName, callback, editTitle){
+    this._reset(layerName, editTitle);
 
     this.callback = callback;
 
@@ -700,8 +701,22 @@ var LayerManager = (function(){
           var layerName = $(this).find('h4').html();
           that.layerEditor.editLayer(layerName, function(newLayerName){
             that.updateLayerName(newLayerName);
-          });
+          }, '修改图层名称');
         }
+      }).on('click', '.layer-list-manager-layer-i', function(){
+        var objectIndex = $(this).index();
+        var theDOM = $(this);
+        var layerIndex = $(this).parent().parent().index();
+
+        var layer = that.layers[layerIndex];
+        var layerObject = layer.objectList[objectIndex];
+
+        that.layerEditor.editLayer(layerObject.name, function(newObjectName){
+          theDOM.text(newObjectName);
+          layerObject.name = newObjectName;
+          that.layerListDataController.updateMap(that.mapObject);
+        }, '修改名称');
+
       }).on('click', '.checkbox', function(e){
         $(this).parent().parent().toggleClass('hide-content');
 
@@ -718,6 +733,20 @@ var LayerManager = (function(){
         }
 
         e.stopPropagation();
+      }).on('mouseover', '.layer-list-manager-layer-i', function(){
+        var objectIndex = $(this).index();
+        var layerIndex = $(this).parent().parent().index();
+
+        var layer = that.layers[layerIndex];
+        var layerObject = layer.objectList[objectIndex];
+
+        cesiumDrawer.flyToObj(layerObject.id);
+      }).on('mouseout', '.layer-list-manager-layer-i', function(){
+        var objectIndex = $(this).index();
+        var layerIndex = $(this).parent().parent().index();
+
+        var layer = that.layers[layerIndex];
+        var layerObject = layer.objectList[objectIndex];
       });
 
       $('.layer-list-manager-bar').on('click', '.operations', function(){
@@ -777,8 +806,10 @@ var LayerManager = (function(){
 
 
       win.cesiumDrawer.addListener('polylineCreated', function(data){
-        console.log(data);
         that._addObject(data.id, '未命名的折线', data.info);
+      });
+      win.cesiumDrawer.addListener('edited', function(data){
+        that._updateObject(data.id, data.positions);
       });
     },
     _fillHTML: function(){
@@ -804,6 +835,18 @@ var LayerManager = (function(){
         layerC.append(html);
       }
 
+      this.layerListDataController.updateMap(this.mapObject);
+    },
+
+    _updateObject: function(id, positions){
+      for(var i = 0; i < this.layers.length; i ++){
+        var layer = this.layers[i];
+        for(var j = 0; j < layer.objectList.length; j ++){
+          if(layer.objectList[j].id === id){
+            layer.objectList[j].cesiumInfos.positions = positions;
+          }
+        }
+      }
       this.layerListDataController.updateMap(this.mapObject);
     },
 

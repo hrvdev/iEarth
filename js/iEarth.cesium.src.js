@@ -1468,6 +1468,14 @@ var CesiumEditor = (function(){
     }
   };
 
+  CesiumEditor.prototype.flyToExtent = function(extent){
+    var flight = Cesium.CameraFlightPath.createAnimationExtent(this._scene, {
+      destination: extent,
+      duration: 1000
+    });
+    this._scene.animations.add(flight);
+  };
+
 
   CesiumEditor.prototype.drawOrShowObject = function(info){
     var obj = this.primitivesCache[info.id];
@@ -1477,8 +1485,6 @@ var CesiumEditor = (function(){
 
       var scene = this._scene;
       var primitives = scene.primitives;
-
-      console.log(info);
 
       var polyline = new PolylinePrimitive(Default.createPolyline(info.cesiumInfos.width, info.cesiumInfos.color));
       polyline.id = info.id;
@@ -1498,32 +1504,7 @@ var CesiumEditor = (function(){
     }
   };
 
-  // CesiumEditor.prototype.flyToExtent = function(extent){
-  //   var flight = Cesium.CameraFlightPath.createAnimationExtent(this._scene, {
-  //     destination: extent,
-  //     duration: 1000
-  //   });
-  //   this._scene.animations.add(flight);
-  // };
-
-  // CesiumEditor.prototype.setSceneMode = function(mode){
-
-  //   var funKey = 'morphTo3D';
-
-  //   switch(mode){
-  //     case '3D':
-  //     funKey = 'morphTo3D';
-  //     break;
-  //     case '2D':
-  //     funKey = 'morphTo2D';
-  //     break;
-  //     case 'columbus':
-  //     funKey = 'morphToColumbusView';
-  //     break;
-  //   }
-
-  //   this.cesiumViewer.sceneTransitioner[funKey]();
-  // };
+  
 
 
   return CesiumEditor;
