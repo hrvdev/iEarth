@@ -127,7 +127,6 @@ var Default = (function(){
       name: "微软雅黑"
     },
     fillColor: 'yellow',
-    outlineColor: 'black',
     outlineWidth: 2.0,
     scale: 1.0
   };
@@ -152,7 +151,9 @@ var Default = (function(){
     defaultBillboard: defaultBillboard,
     dragBillboard: dragBillboard,
     dragHalfBillboard: dragHalfBillboard,
-    defaultLabelOptions: defaultLabelOptions,
+    defaultLabelOptions: function(){
+      return defaultLabelOptions;
+    },
     defaultArrowOptions: defaultArrowOptions,
     defaultMeasurePolylineOptions: defaultMeasurePolylineOptions,
     defaultRadiusPolylineOptions: defaultRadiusPolylineOptions,
