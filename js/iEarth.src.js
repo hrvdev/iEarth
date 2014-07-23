@@ -703,7 +703,7 @@ var LayerManager = (function(){
             that.updateLayerName(newLayerName);
           }, '修改图层名称');
         }
-      }).on('click', '.layer-list-manager-layer-i', function(){
+      }).on('dblclick', '.layer-list-manager-layer-i', function(){
         var objectIndex = $(this).index();
         var theDOM = $(this);
         var layerIndex = $(this).parent().parent().index();
@@ -733,7 +733,7 @@ var LayerManager = (function(){
         }
 
         e.stopPropagation();
-      }).on('mouseover', '.layer-list-manager-layer-i', function(){
+      }).on('click', '.layer-list-manager-layer-i', function(){
         var objectIndex = $(this).index();
         var layerIndex = $(this).parent().parent().index();
 
@@ -741,12 +741,7 @@ var LayerManager = (function(){
         var layerObject = layer.objectList[objectIndex];
 
         cesiumDrawer.flyToObj(layerObject.id);
-      }).on('mouseout', '.layer-list-manager-layer-i', function(){
-        var objectIndex = $(this).index();
-        var layerIndex = $(this).parent().parent().index();
-
-        var layer = that.layers[layerIndex];
-        var layerObject = layer.objectList[objectIndex];
+        cesiumDrawer.setObjectToEditMode(layerObject.id);
       });
 
       $('.layer-list-manager-bar').on('click', '.operations', function(){
@@ -872,6 +867,10 @@ var LayerManager = (function(){
     showMap: function(mapObject){
 
       this.currentLayerIndex = 0;
+
+      if(this.layers){
+        this.removeAllObjects();
+      }
 
       this.mapObject = mapObject;
       this.layers = mapObject.layerList;
