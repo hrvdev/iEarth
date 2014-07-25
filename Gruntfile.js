@@ -28,6 +28,7 @@ module.exports = function(grunt){
           'js/src/localStorage.js',
 
           'js/src/utils.js',
+          'js/src/saveAs.js',
           'js/src/EventEmitter.js',
 
           'js/src/userLoginRegister.js',
