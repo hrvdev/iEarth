@@ -25,7 +25,7 @@ var getTheMapLevel = 0;
       fullscreenElement: document.body,
       baseLayerPicker: false,
       imageryProvider: new Cesium.OpenStreetMapImageryProvider({
-        url: 'http://124.65.135.146:8100/map/google/',
+        url: CONFIG.mapSource + 'google/',
         maximumLevel: '20',
         credit: ''
       }),
