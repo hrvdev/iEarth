@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="css/index.css">
   <link rel="stylesheet" type="text/css" href="css/iEarth.min.css" />
   <link rel="stylesheet" type="text/css" href="lib/jquery/jquery.beautySelect.css" />
+  <link rel="stylesheet" type="text/css" href="lib/jqueryui/jquery-ui.min.css" />
+  <link rel="stylesheet" type="text/css" href="lib/jqueryui/jquery-ui.theme.min.css" />
   <link rel="stylesheet" type="text/css" href="lib/colorpicker/css/colpick.css" />
   <style>
   body{padding:0; margin:0;}
@@ -16,7 +18,8 @@
 <body>
   <script>
   var CONFIG = {
-    mapSource: 'http://124.65.135.146:8100/map/'
+    mapSource: 'http://124.65.135.146:8100/map/',
+    terrianSource: 'http://124.65.135.146:8100/terrain/'
   };
   </script>
 
@@ -98,6 +101,46 @@
 
   <!-- 底部工具 -->
   <div class="tools" id="tools">
+
+    <!-- 影响调节 -->
+    <div class="image-adj" id="imageryAdjust">
+      <div class="tit">影响调节</div>
+      <div class="c">
+        <div class="row">
+          <div class="label">亮度:</div>
+          <div class="i">
+            <div id="imageAdjustBrightness"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">对比度:</div>
+          <div class="i">
+            <div id="imageAdjustContrast"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">色度:</div>
+          <div class="i">
+            <div id="imageAdjustTinct"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">饱和度:</div>
+          <div class="i">
+            <div id="imageAdjustSaturation"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">伽马值:</div>
+          <div class="i">
+            <div id="imageAdjustGamma"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /影响调节 -->
+
+
     <div class="map-tools">
       <div class="map-tool map-tool-location"><span class="icon"></span></div>
       
@@ -119,12 +162,6 @@
     </div>
   </div>
   <!-- /底部工具 -->
-
-  <!-- 影响调节 -->
-  <div class="image-adj">
-    
-  </div>
-  <!-- /影响调节 -->
 
 
   <!-- 地图管理 -->
@@ -211,6 +248,7 @@
             <% _.each(layer.objectList, function(obj){ %>
               <div class="layer-list-manager-layer-i <%= obj.type %>">
                 <%= obj.name %>
+                <span title="修改名称" class="modify"></span>
                 <span title="删除" class="delete"></span>
               </div>
             <% }); %>
@@ -351,6 +389,7 @@
   <script src="js/setUpCesium.js"></script>
 
   <script src="lib/jquery/jquery.2.1.1.min.js"></script>
+  <script src="lib/jqueryui/jquery-ui.min.js"></script>
   <script src="lib/colorpicker/js/colpick.js"></script>
   <script src="lib/jquery/jquery.beautySelect.js"></script>
   <script src="lib/underscore/underscore.js"></script>

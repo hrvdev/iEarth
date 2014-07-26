@@ -7,6 +7,8 @@ module.exports = function(grunt){
         src: [
           'js/ui/intro.js',
 
+          'js/ui/imagerySettings.js',
+
           'js/ui/Tools.js',
           'js/ui/canvas.js',
 

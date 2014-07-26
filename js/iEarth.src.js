@@ -940,7 +940,7 @@ var LayerManager = (function(){
       var that = this;
 
       that.mapLayerList.on('click', '.layer-list-manager-layer-t', function(){
-        $(that.mapLayerList.find('.layer-list-manager-layer')[that.currentLayerIndex]).removeClass('selected');
+        var preLayerIndex = that.currentLayerIndex;
 
         that.currentLayerIndex = $(this).attr('data-index');
 
@@ -954,8 +954,13 @@ var LayerManager = (function(){
         
 
         $(that.mapLayerList.find('.layer-list-manager-layer')[that.currentLayerIndex]).removeClass('hide-content').addClass('selected');
-
         
+        that.showLayerObjects(that.currentLayerIndex);
+
+        if(preLayerIndex != that.currentLayerIndex){
+          $(that.mapLayerList.find('.layer-list-manager-layer')[preLayerIndex]).addClass('hide-content').removeClass('selected');
+          that.hideLayerObjects(preLayerIndex);
+        }
       }).on('click', '.layer-list-manager-layer-t .delete', function(e){
         e.stopPropagation();
 
@@ -970,20 +975,21 @@ var LayerManager = (function(){
         }
 
         $(this).parent().parent().remove();
-      }).on('dblclick', '.layer-list-manager-layer-i', function(){
-        var objectIndex = $(this).index();
-        var theDOM = $(this);
-        var layerIndex = $(this).parent().parent().index();
+      }).on('click', '.layer-list-manager-layer-i .modify', function(e){
+        var objectIndex = $(this).parent().index();
+        var theDOM = $(this).parent();
+        var layerIndex = $(this).parent().parent().parent().index();
 
         var layer = that.layers[layerIndex];
         var layerObject = layer.objectList[objectIndex];
 
         that.layerEditor.editLayer(layerObject.name, function(newObjectName){
-          theDOM.text(newObjectName);
+          theDOM.html(newObjectName + '<span class="delete"></span><span class="modify"></span>');
           layerObject.name = newObjectName;
           that.layerListDataController.updateMap(that.mapObject);
         }, '修改名称');
 
+        e.stopPropagation();
       }).on('click', '.checkbox', function(e){
 
         var layerDom = $(this).parent().parent();

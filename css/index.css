@@ -132,7 +132,7 @@ body{
   line-height: 30px;
   text-align: center;
   z-index: 10;
-  background-image: -webkit-linear-gradient(top,rgba(255, 255, 255, 0),rgba(0, 0, 0, 0.35));
+  background-image: -webkit-linear-gradient(top,rgba(0, 0, 0, 0.35),rgba(0, 0, 0, 0.85))
   color: #fff;
 }
 .mini-map-mask i{
@@ -381,4 +381,49 @@ body{
 }
 .location-close span:hover{
   background-position: -26px -92px;
+}
+.image-adj{
+  position: absolute;
+  top: -38px;
+  width: 300px;
+  border: 1px solid #000;
+  border-radius: 2px;
+  height: 170px;
+  background-color: #222;
+  pointer-events: auto;
+  opacity: 0;
+  right: 74px;
+  -webkit-transition: all 0.2s ease-in;
+}
+.image-adj.show{
+  opacity: 1;
+}
+.image-adj .tit{
+  line-height: 25px;
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  border-bottom: 1px solid #000;
+}
+.image-adj .c{
+  padding: 10px;
+  font-size: 12px;
+}
+.image-adj .row{
+  height: 20px;
+  line-height: 20px;
+  margin-bottom: 5px;
+}
+.image-adj .label{
+  width: 60px;
+  float: left;
+  color: #fff;
+}
+.image-adj .i{
+  width: 218px;
+  float: right;
+  margin-top: 5px;
+}
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default{
+  outline: none;
 }

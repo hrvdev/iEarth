@@ -3,6 +3,7 @@ var Tools = (function(){
   var ToolsClass = function(miniMap){
     
     this.miniMap = miniMap;
+    this.adjustLayer = new ImagerySettings();
 
     this.dom = $('#tools');
     this.toggleLocationImagesBtn = $('#toggleLocationImagesBtn');
@@ -18,25 +19,6 @@ var Tools = (function(){
 
       that.dom.on('click', '.map-tool-location', function(){
         selfCesium.north();
-      }).on('click', '.map-tool-measure', function(){
-
-        cesiumDrawer.startDrawingPolyline();
-
-        // var dom = $(this);
-        // if(dom.hasClass('active')){
-        //   dom.removeClass('active');
-        //   selfCesium.stopMeasure();
-        //   selfCesium.clearMeasure();
-        //   selfCesium.dbclickTofly_enable = true;
-        // } else {
-        //   dom.addClass('active');
-        //   selfCesium.dbclickTofly_enable = false;
-        //   selfCesium.startMeasure(function(){
-        //     dom.removeClass('active');
-        //     selfCesium.dbclickTofly_enable = true;
-        //   });
-        // }
-
       }).on('click', '.location-images-toggle', function(){
         if(that.toggleLocationImagesBtn.hasClass('open')){
           that.hideLocationImages();
@@ -46,13 +28,6 @@ var Tools = (function(){
           that.showLocationImages();
           that.miniMap.goToLarge();
         }
-      }).on('click', '.map-tool-addlabel', function(){
-        
-        var dom = $(this).addClass('active');
-
-        selfCesium.startAddLabel(function(){
-          dom.removeClass('active');
-        });
       }).on('click', '.map-tool-vector', function(){
         var dom = $(this);
         if(dom.hasClass('active')){
@@ -69,9 +44,18 @@ var Tools = (function(){
           selfCesium.setTerrian.remove();
         } else {
           dom.addClass('active');
-          selfCesium.setTerrian.set("http://124.65.135.146:8100/terrain/");
+          selfCesium.setTerrian.set(CONFIG.terrianSource);
         }
-      }).on('mouse');
+      }).on('click', '.map-tool-settings', function(){
+        var dom = $(this);
+        if(dom.hasClass('active')){
+          dom.removeClass('active');
+          that.adjustLayer.hide();
+        } else {
+          dom.addClass('active');
+          that.adjustLayer.show();
+        }
+      });
     },
     showLocationImages: function(){
       this.dom.addClass('open');
