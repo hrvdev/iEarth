@@ -1056,6 +1056,9 @@ var LayerManager = (function(){
         });
       }).on('click', '.open', function(){
         that.mapOperations.hide();
+        if(that.layers){
+          that.removeAllObjects();
+        }
         that.layerListViewController.openMap(function(map){
           that.layerListDataController.setDefaultMap(map.id);
           that.showMap(map);
@@ -1094,6 +1097,10 @@ var LayerManager = (function(){
                   var map = that.layerListDataController.addMapWithLayers(fileJSON);
                   that.showMap(map);
                   that.layerListDataController.setDefaultMap(map.id);
+
+                  if(that.layers){
+                    that.removeAllObjects();
+                  }
                 }catch(e){
 
                 }

@@ -251,14 +251,14 @@ var MiniMap = (function(){
 
         if(that.miniMapSource.hasClass('bing')){
           map.removeLayer(google);
-          // map.removeLayer(vector);
+          map.removeLayer(googleVector);
           map.addLayer(bing);
-          map.addLayer(bing);
+          map.addLayer(bingVector);
         } else {
           map.removeLayer(bing);
-          // map.removeLayer(vector);
+          map.removeLayer(bingVector);
           map.addLayer(google);
-          map.addLayer(bing);
+          map.addLayer(googleVector);
         }
       });
 
@@ -268,20 +268,25 @@ var MiniMap = (function(){
             url: CONFIG.mapSource + 'bing/{z}/{x}/{y}.png'
          })
       });
+      var bingVector = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+            url: CONFIG.mapSource + 'google-vector/{z}/{x}/{y}.png'
+         })
+      });
       var google = new ol.layer.Tile({
         source: new ol.source.XYZ({
             url: CONFIG.mapSource + 'google/{z}/{x}/{y}.png'
          })
       });
-      // var vector = new ol.layer.Tile({
-      //   source: new ol.source.XYZ({
-      //       url: 'http://192.168.1.252:8102/map/google-vector/{z}/{x}/{y}.png'
-      //    })
-      // });
+      var googleVector = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+            url: CONFIG.mapSource + 'google-vector/{z}/{x}/{y}.png'
+         })
+      });
 
       var map = new ol.Map({
         target: 'miniMapCanvas',
-        layers: [google],
+        layers: [google, googleVector],
         renderer:'canvas',
         view: new ol.View2D({
           center: ol.proj.transform([0, 0], 'EPSG:4326', 'EPSG:3857'),
