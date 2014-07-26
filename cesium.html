@@ -201,6 +201,7 @@
       <div class="layer-list-manager-layer hide-content">
         <div class="layer-list-manager-layer-t" data-index="<%= layerIndex + fromIndex %>">
           <h4><%= layer.name %></h4>
+          <div class="delete" title="删除图层"></div>
           <div class="checkbox" data-index="<%= layerIndex %>">
             <span class="checkbox-border"><span class="checkbox-image"></span></span>
           </div>
@@ -210,6 +211,7 @@
             <% _.each(layer.objectList, function(obj){ %>
               <div class="layer-list-manager-layer-i <%= obj.type %>">
                 <%= obj.name %>
+                <span title="删除" class="delete"></span>
               </div>
             <% }); %>
           <% } else { %>

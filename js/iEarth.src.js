@@ -944,16 +944,32 @@ var LayerManager = (function(){
 
         that.currentLayerIndex = $(this).attr('data-index');
 
-        $(that.mapLayerList.find('.layer-list-manager-layer')[that.currentLayerIndex]).addClass('selected');
-
-        if($(this).parent().hasClass('hide-content')){
-          $(this).parent().removeClass('hide-content')
-        } else {
+        if($(that.mapLayerList.find('.layer-list-manager-layer')[that.currentLayerIndex]).hasClass('selected')){
+          
           var layerName = $(this).find('h4').html();
           that.layerEditor.editLayer(layerName, function(newLayerName){
             that.updateLayerName(newLayerName);
           }, '修改图层名称');
         }
+        
+
+        $(that.mapLayerList.find('.layer-list-manager-layer')[that.currentLayerIndex]).removeClass('hide-content').addClass('selected');
+
+        
+      }).on('click', '.layer-list-manager-layer-t .delete', function(e){
+        e.stopPropagation();
+
+        var layerIndex = $(this).parent().attr('data-index');
+        var objectList = that.layers[layerIndex];
+        that.layers.splice(layerIndex, 1);
+        that.mapObject.layerList = that.layers;
+        that.layerListDataController.updateMap(that.mapObject);
+
+        for(var i = 0; i < objectList.length; i ++){
+          win.cesiumDrawer.removeObject(objectList[i].id);
+        }
+
+        $(this).parent().parent().remove();
       }).on('dblclick', '.layer-list-manager-layer-i', function(){
         var objectIndex = $(this).index();
         var theDOM = $(this);
@@ -969,18 +985,15 @@ var LayerManager = (function(){
         }, '修改名称');
 
       }).on('click', '.checkbox', function(e){
-        $(this).parent().parent().toggleClass('hide-content');
 
-        if(!$(this).parent().parent().hasClass('hide-content')){
-          $(that.mapLayerList.find('.layer-list-manager-layer')[that.currentLayerIndex]).removeClass('selected');
-
-          that.currentLayerIndex = $(this).attr('data-index');
-
-          $(that.mapLayerList.find('.layer-list-manager-layer')[that.currentLayerIndex]).addClass('selected');
-
-          that.showLayerObjects(that.currentLayerIndex);
+        var layerDom = $(this).parent().parent();
+        var clickIndex = layerDom.index();
+        if(layerDom.hasClass('hide-content')){
+          layerDom.removeClass('hide-content');
+          that.showLayerObjects(clickIndex);
         } else {
-          that.hideLayerObjects(that.currentLayerIndex);
+          layerDom.addClass('hide-content');
+          that.hideLayerObjects(clickIndex);
         }
 
         e.stopPropagation();
@@ -993,7 +1006,25 @@ var LayerManager = (function(){
 
         cesiumDrawer.flyToObj(layerObject.id);
         cesiumDrawer.setObjectToEditMode(layerObject.id);
+      }).on('click', '.layer-list-manager-layer-i .delete', function(e){
+        e.stopPropagation();
+        var layerDom = $(this).parent();
+
+        var objectIndex = layerDom.index();
+        var layerIndex = layerDom.parent().parent().index();
+
+        var layer = that.layers[layerIndex];
+        var layerObject = layer.objectList[objectIndex];
+        layer.objectList.splice(objectIndex, 1);
+
+        that.layerListDataController.updateMap(that.mapObject);
+
+        win.cesiumDrawer.removeObject(layerObject.id);
+
+        layerDom.remove();
       });
+
+
 
       $('.layer-list-manager-bar').on('click', '.operations', function(){
         that.mapOperations.toggle();
@@ -1125,7 +1156,7 @@ var LayerManager = (function(){
       });
 
       var layerC = layerDom.find('.layer-list-manager-layer-c');
-      var html = '<div class="layer-list-manager-layer-i ' + type + '" data-id="' + id + '">' + name + '</div>';
+      var html = '<div class="layer-list-manager-layer-i ' + type + '" data-id="' + id + '">' + name + '<span class="delete"></span></div>';
       if(theLayer.objectList.length === 1){
         layerC.html(html);
       } else {
@@ -1248,8 +1279,6 @@ var LayerManager = (function(){
 
     start: function(){
     }
-
-    
   });
 
 
