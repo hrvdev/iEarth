@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>iEarth</title>
+  <link rel="stylesheet" href="lib/Cesium/Widgets/widgets.css">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" type="text/css" href="css/iEarth.min.css" />
+  <link rel="stylesheet" type="text/css" href="lib/jquery/jquery.beautySelect.css" />
+  <link rel="stylesheet" type="text/css" href="lib/jqueryui/jquery-ui.min.css" />
+  <link rel="stylesheet" type="text/css" href="lib/jqueryui/jquery-ui.theme.min.css" />
+  <link rel="stylesheet" type="text/css" href="lib/ztree/zTreeStyle.css" />
+  <link rel="stylesheet" type="text/css" href="lib/colorpicker/css/colpick.css" />
+  <style>
+  body{padding:0; margin:0;}
+  .cesium-widget-credits{display: none;}
+  </style>
+</head>
+<body>
+  <script>
+  var CONFIG = {
+    mapSource: 'http://124.65.135.146:8100/map/',
+    terrianSource: 'http://124.65.135.146:8100/terrain/'
+  };
+  </script>
+
+
+
+  <!-- cesium 球容器 -->
+  <div class="cesium" id="cesiumContainer"></div>
+  <!-- /cesium 球容器 -->
+
+  <!-- canvas -->
+  <div class="cesium cesium-canvas-w">
+    <canvas class="cesium cesium-canvas" id="canvas" width="5000" height="3000"></canvas>
+  </div>
+  <!-- /canvas -->
+
+  
+  <!-- 搜索框 -->
+  <div class="search-bar">
+    <input type="text" name="q" id="searchInput" placeholder="请输入地名" />
+    <button id="searchButton">搜索</button>
+  </div>
+  <!-- /搜索框 -->
+
+  <!-- 显示搜索结果 -->
+  <div class="search-result" id="searchResult">
+  </div>
+  <!-- /显示搜索结果 -->
+
+
+  <!-- 显示经纬度 -->
+  <div class="location-show" id="locationShow">
+    <div class="location-icon">
+    </div>
+    <div class="location-lat-lng" id="locationShowC">
+    </div>
+    <div class="location-spliter"></div>
+    <div class="location-close">
+      <span id="locationShowClose"></span>
+    </div>
+  </div>
+  <!-- /显示经纬度 -->
+  
+  <!-- 用户 -->
+  <div class="user-info">
+    <div class="user-login" id="loginTrigger">我的地图</div>
+    <div class="user-map" id="userPanel" style="display:none;">
+      <span class="user" id="usernameSpan"></span>
+      <span class="logout" id="logoutTrigger">退出</span>
+    </div>
+  </div>
+  <!-- /用户 -->
+
+  <!-- 用户登录和注册 -->
+  <div class="user-login-reg" id="userLoginRegister" style="display:none;">
+    <span class="layer-manager-close"></span>
+    <div class="user-login-c">
+      <div class="user-login-t">
+        请登录您的帐号<font style="font-size:13px;">(也可以直接注册)</font>
+      </div>
+      <div class="user-login-error" style="display:none;" id="userLoginRegisterError">
+      </div>
+      <div class="user-login-form">
+        <input type="text" class="username" placeholder="用户名" id="userLoginRegisterUsername">
+        <input type="password" class="password" placeholder="密码" id="userLoginRegisterPassword">
+        <button class="submit">登录</button>
+        <button class="register">注册</button>
+      </div>
+    </div>
+  </div>
+  <!-- /用户登录和注册 -->
+  
+  <!-- 小地图 -->
+  <div class="mini-map" id="miniMap">
+    <div class="mini-map-mask google" id="miniMapSource">iEarth<i></i></div>
+    <div class="mini-map-canvas" id="miniMapCanvas"></div>
+  </div>
+  <!-- /小地图 -->
+
+
+  <!-- 底部工具 -->
+  <div class="tools" id="tools">
+
+    <!-- 影响调节 -->
+    <div class="image-adj" id="imageryAdjust">
+      <div class="tit">影响调节</div>
+      <div class="c">
+        <div class="row">
+          <div class="label">亮度:</div>
+          <div class="i">
+            <div id="imageAdjustBrightness"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">对比度:</div>
+          <div class="i">
+            <div id="imageAdjustContrast"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">色度:</div>
+          <div class="i">
+            <div id="imageAdjustTinct"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">饱和度:</div>
+          <div class="i">
+            <div id="imageAdjustSaturation"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">伽马值:</div>
+          <div class="i">
+            <div id="imageAdjustGamma"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /影响调节 -->
+
+
+    <div class="map-tools">
+      <div class="map-tool map-tool-location"><span class="icon"></span></div>
+      
+      <div class="map-tool map-tool-vector"><span class="icon"></span></div>
+      <div class="map-tool map-tool-terrian"><span class="icon"></span></div>
+
+
+      <div class="map-tool map-tool-settings"><span class="icon"></span></div>
+    </div>
+    <div class="location-images">
+      <div class="location-images-toggle clearfix" id="toggleLocationImagesBtn">
+        <img src="imgs/expand.png" height="25" alt="">
+        <div class="arrow"><span></span></div>
+      </div>
+      <div class="location-images-w">
+        <div class="location-images-container" id="locationImagesContainer">
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /底部工具 -->
+
+
+  <!-- 地图管理 -->
+  <div class="layer-tools" id="layerTools" style="display:none;">
+    <div class="layer-tool-group">
+      <div class="layer-tool hand" title="选择内容" id="layerToolsHand"></div>
+      <div class="layer-tool label" title="添加标记" id="layerToolsLabel"></div>
+      <div class="layer-tool polyline" title="绘制线条" id="layerToolsPolyline"></div>
+    </div>
+    <div class="layer-tool-group">
+      <div class="layer-tool measure-distance" title="测距" id="layerToolsDistance"></div>
+    </div>
+    <div class="layer-tool-group">
+      <div class="layer-tool settings" title="配置" id="layerToolsSettings"></div>
+    </div>
+  </div>
+  <div class="layer-manager" style="display:none;" id="layerManager">
+    <div class="layer-manager-t">
+      <h2>打开地图</h2>
+      <span class="layer-manager-close"></span>
+    </div>
+    <div class="layer-manager-c" id="mapListC">
+    </div>
+    <div class="layer-manager-a">
+      <span class="layer-manager-btn cancel">取消</span>
+      <span class="layer-manager-btn ok disable">选择</span>
+    </div>
+  </div>
+  <script type="text/template" id="mapListTemplate">
+    <% _.each(maps, function(map, mapIndex){  %>
+      <div class="layer-manager-row">
+        <div class="checkbox">
+          <span class="checkbox-border"><span class="checkbox-image"></span></span>
+        </div>
+        <div class="icon">
+          <img src="imgs/map_icon_16.png" alt="">
+        </div>
+        <div class="name">
+          <%= map.name %>
+        </div>
+        <div class="time">
+          <%= map.timeStr %>
+        </div>
+        <div class="count">
+          <%= map.layerList.length %>个图层
+        </div>
+      </div>
+    <%}); %>
+  </script>
+  <!-- /地图管理 -->
+
+
+  <!-- 图层管理 -->
+  <div class="layer-list-manager" id="mapManager" style="display:none;">
+    <div class="layer-list-manager-tbar">
+      <div class="layer-list-manager-t" id="mapTitle">北京市标记</div>
+      <div class="layer-list-manager-bar">
+        <span class="operations"><span></span></span>
+        <span class="add-layer">添加文件夹</span>
+      </div>
+      <div class="operations-w" style="display:none;" id="mapOperations">
+        <div class="operation create">新建地图</div>
+        <div class="operation open">打开地图</div>
+        <div class="operation export">导出地图</div>
+        <div class="operation import">导入地图</div>
+        <div class="operation delete">删除此地图</div>
+      </div>
+    </div>
+    <div class="layer-list-manager-c">
+      <ul id="mapTree" class="ztree"></ul>
+    </div>
+  </div>
+  <script type="text/template" id="mapLayerListTemplate">
+    <% _.each(layers, function(layer, layerIndex){  %>
+      <div class="layer-list-manager-layer hide-content">
+        <div class="layer-list-manager-layer-t" data-index="<%= layerIndex + fromIndex %>">
+          <h4><%= layer.name %></h4>
+          <div class="delete" title="删除图层"></div>
+          <div class="checkbox" data-index="<%= layerIndex %>">
+            <span class="checkbox-border"><span class="checkbox-image"></span></span>
+          </div>
+        </div>
+        <div class="layer-list-manager-layer-c">
+          <% if(layer.objectList.length) { %>
+            <% _.each(layer.objectList, function(obj){ %>
+              <div class="layer-list-manager-layer-i <%= obj.type %>">
+                <%= obj.name %>
+                <span title="修改名称" class="modify"></span>
+                <span title="删除" class="delete"></span>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <div style="margin:0 12px; color:#333; font-size: 13px; text-align:center; line-height:30px;">请创建对象</div>
+          <% } %>
+        </div>
+      </div>
+    <%}); %>
+  </script>
+  <!-- /图层管理 -->
+
+  
+  <!-- 新建地图 -->
+  <div class="map-editor" id="mapEditor" style="display:none;">
+    <span class="layer-manager-close"></span>
+    <div class="title" id="mapEditorTitle"></div>
+    <div class="input">
+      <input type="text" id="mapEditorInput">
+    </div>
+    <div class="action">
+      <span class="layer-manager-btn ok">保存</span>
+      <span class="layer-manager-btn cancel">取消</span>
+    </div>
+  </div>
+  <!-- /新建地图 -->
+
+  <!-- 修改图层 -->
+  <div class="map-editor" id="layerEditor" style="display:none;">
+    <span class="layer-manager-close"></span>
+    <div class="title" id="layerEditorTitle">修改图层名称</div>
+    <div class="input">
+      <input type="text" id="layerEditorInput">
+    </div>
+    <div class="action">
+      <span class="layer-manager-btn ok">保存</span>
+      <span class="layer-manager-btn cancel">取消</span>
+    </div>
+  </div>
+  <!-- /新建地图 -->
+
+  <!-- 默认配置 -->
+  <div class="cesium-settings" id="cesiumSettings" style="display:none;">
+    <span class="layer-manager-close"></span>
+    <div class="cesium-settings-title">
+      设置
+    </div>
+    <div class="cesium-settings-c">
+      <div class="cesium-settings-g">
+        <div class="cesium-settings-t">标记</div>
+        <div class="cesium-settings-i">
+          <div class="cesium-settings-label">颜色</div>
+          <div class="cesium-settings-val">
+            <input type="text" id="settingsLabelColorInput" />
+            <span class="cesium-settings-color-picker" id="settingsLabelColorPicker"></span>
+          </div>
+          <div style="clear:both;"></div>
+        </div>
+        <!-- <div class="cesium-settings-i">
+          <div class="cesium-settings-label">字体</div>
+          <div class="cesium-settings-val">
+            
+          </div>
+          <div style="clear:both;"></div>
+        </div> -->
+        <div class="cesium-settings-i">
+          <div class="cesium-settings-label">大小</div>
+          <div class="cesium-settings-val">
+            <input type="text" id="settingsLabelFontSizeInput">
+          </div>
+          <div style="clear:both;"></div>
+        </div>
+      </div>
+
+      <div class="cesium-settings-g">
+        <div class="cesium-settings-t">折线</div>
+        <div class="cesium-settings-i">
+          <div class="cesium-settings-label">颜色</div>
+          <div class="cesium-settings-val">
+            <input type="text" id="settingsPolylineColorInput" />
+            <span class="cesium-settings-color-picker" id="settingsPolylineColorPicker"></span>
+          </div>
+          <div style="clear:both;"></div>
+        </div>
+        <div class="cesium-settings-i">
+          <div class="cesium-settings-label">粗细</div>
+          <div class="cesium-settings-val">
+            <input type="text" id="settingsPolylineWidthInput">
+          </div>
+          <div style="clear:both;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="action">
+      <span class="layer-manager-btn ok">保存</span>
+      <span class="layer-manager-btn cancel">取消</span>
+    </div>
+  </div>
+  <!-- /默认配置 -->
+
+
+  <input type="file" id="selectFileInput" style="display:none;" />
+
+  <script src="lib/Cesium/Cesium.js"></script>
+  
+  <script src="js/setUpCesium.js"></script>
+
+  <script src="lib/jquery/jquery.2.1.1.min.js"></script>
+  <script src="lib/jqueryui/jquery-ui.min.js"></script>
+  <script src="lib/ztree/jquery.ztree.all-3.5.min.js"></script>
+  <script src="lib/colorpicker/js/colpick.js"></script>
+  <script src="lib/jquery/jquery.beautySelect.js"></script>
+  <script src="lib/underscore/underscore.js"></script>
+  <script src="lib/openlayer/ol.js"></script>
+
+  <script src="js/iEarth.cesium.src.js"></script>
+
+  <script src="lib/ocanvas/ocanvas.js"></script>
+  
+  <script src="js/iEarth.src.js"></script>
+  <script src="js/cesiumHelper.js"></script>
+  <script src="js/iEarth.ui.src.js"></script>
+</body>
+</html>

@@ -782,13 +782,15 @@ var LayerListDataController = (function(){
       return JSON.parse(storage.getItem(MAP_LAYER_KEY + mapId));
     },
     addMap: function(name){
+      var id = utils.uuid(MAP_ID_PREFIX);
       var map = {
-        id: utils.uuid(MAP_ID_PREFIX),
+        id: id,
         name: name,
         ctime: Date.now(),
-        layerList: [{
-          name: '未命名的图层',
-          objectList: []
+        treeData: [{
+          id: id,
+          name: name,
+          isParent: true
         }]
       };
 
@@ -798,12 +800,6 @@ var LayerListDataController = (function(){
 
       storage.setItem(MAP_LAYER_KEY + map.id, JSON.stringify(map));
 
-      return map;
-    },
-    addMapWithLayers: function(mapInfo){
-      var map = this.addMap(mapInfo.name);
-      map.layerList = mapInfo.layerList;
-      this.updateMap(map);
       return map;
     },
     updateMap: function(map){
@@ -914,20 +910,17 @@ var LayerManager = (function(){
     this.dom = $('#mapManager');
     this.mapTitle = $('#mapTitle');
     this.mapOperations = $('#mapOperations');
-    this.mapLayerList = $('#mapLayerList');
 
 
     this.mapEditor = new MapEditor();
-    this.layerEditor = new LayerEditor();
 
     this.layerListDataController = new LayerListDataController();
     this.layerListViewController = new LayerListViewController(this.layerListDataController);
 
-
-
-    this.mapLayerListRender = _.template($('#mapLayerListTemplate').html());
-
     this.userLoginRegister = new UserLoginRegister();
+
+
+    this._initZTree();
 
     this._autoLogin();
 
@@ -936,123 +929,63 @@ var LayerManager = (function(){
 
 
   utils.extend(LayerManagerClass.prototype, {
+    _initZTree: function(){
+      var that = this;
+      var setting = {
+        edit: {
+          drag: {
+            inner: false
+          },
+          enable: true
+        },
+        
+        view: {
+          expandSpeed: ''
+        },
+        selectedMulti: false,
+        callback: {
+          beforeRemove: function(treeId, treeNode){
+            if(treeNode.getParentNode()){
+              return true;
+            } else {
+              return false;
+            }
+          },
+          onClick: function(event, treeId, treeNode){
+            if(!treeNode.isParent){
+              win.cesiumDrawer.flyToObj(treeNode.id);
+            }
+          },
+          onRename: function(){
+            that.saveTree();
+          },
+          onRemove: function(event, treeId, treeNode){
+            if(treeNode.isParent){
+              var nodes = that.zTree.transformToArray(treeNode.children);
+              for(var i = 0; i < nodes.length; i ++){
+                win.cesiumDrawer.removeObject(nodes[i].id);
+              }
+            } else {
+              win.cesiumDrawer.removeObject(treeNode.id);
+            }
+            that.saveTree();
+          }
+
+        }
+      };
+
+      this.zTree = $.fn.zTree.init($("#mapTree"), setting);
+    },
     _bindEvent: function(){
       var that = this;
-
-      that.mapLayerList.on('click', '.layer-list-manager-layer-t', function(){
-        var preLayerIndex = that.currentLayerIndex;
-
-        that.currentLayerIndex = $(this).attr('data-index');
-
-        if($(that.mapLayerList.find('.layer-list-manager-layer')[that.currentLayerIndex]).hasClass('selected')){
-          
-          var layerName = $(this).find('h4').html();
-          that.layerEditor.editLayer(layerName, function(newLayerName){
-            that.updateLayerName(newLayerName);
-          }, '修改图层名称');
-        }
-        
-
-        $(that.mapLayerList.find('.layer-list-manager-layer')[that.currentLayerIndex]).removeClass('hide-content').addClass('selected');
-        
-        that.showLayerObjects(that.currentLayerIndex);
-
-        if(preLayerIndex != that.currentLayerIndex){
-          $(that.mapLayerList.find('.layer-list-manager-layer')[preLayerIndex]).addClass('hide-content').removeClass('selected');
-          that.hideLayerObjects(preLayerIndex);
-        }
-      }).on('click', '.layer-list-manager-layer-t .delete', function(e){
-        e.stopPropagation();
-
-        var layerIndex = $(this).parent().attr('data-index');
-        var objectList = that.layers[layerIndex];
-        that.layers.splice(layerIndex, 1);
-        that.mapObject.layerList = that.layers;
-        that.layerListDataController.updateMap(that.mapObject);
-
-        for(var i = 0; i < objectList.length; i ++){
-          win.cesiumDrawer.removeObject(objectList[i].id);
-        }
-
-        $(this).parent().parent().remove();
-      }).on('click', '.layer-list-manager-layer-i .modify', function(e){
-        var objectIndex = $(this).parent().index();
-        var theDOM = $(this).parent();
-        var layerIndex = $(this).parent().parent().parent().index();
-
-        var layer = that.layers[layerIndex];
-        var layerObject = layer.objectList[objectIndex];
-
-        that.layerEditor.editLayer(layerObject.name, function(newObjectName){
-          theDOM.html(newObjectName + '<span class="delete"></span><span class="modify"></span>');
-          layerObject.name = newObjectName;
-          that.layerListDataController.updateMap(that.mapObject);
-        }, '修改名称');
-
-        e.stopPropagation();
-      }).on('click', '.checkbox', function(e){
-
-        var layerDom = $(this).parent().parent();
-        var clickIndex = layerDom.index();
-        if(layerDom.hasClass('hide-content')){
-          layerDom.removeClass('hide-content');
-          that.showLayerObjects(clickIndex);
-        } else {
-          layerDom.addClass('hide-content');
-          that.hideLayerObjects(clickIndex);
-        }
-
-        e.stopPropagation();
-      }).on('click', '.layer-list-manager-layer-i', function(){
-        var objectIndex = $(this).index();
-        var layerIndex = $(this).parent().parent().index();
-
-        var layer = that.layers[layerIndex];
-        var layerObject = layer.objectList[objectIndex];
-
-        cesiumDrawer.flyToObj(layerObject.id);
-        cesiumDrawer.setObjectToEditMode(layerObject.id);
-      }).on('click', '.layer-list-manager-layer-i .delete', function(e){
-        e.stopPropagation();
-        var layerDom = $(this).parent();
-
-        var objectIndex = layerDom.index();
-        var layerIndex = layerDom.parent().parent().index();
-
-        var layer = that.layers[layerIndex];
-        var layerObject = layer.objectList[objectIndex];
-        layer.objectList.splice(objectIndex, 1);
-
-        that.layerListDataController.updateMap(that.mapObject);
-
-        win.cesiumDrawer.removeObject(layerObject.id);
-
-        layerDom.remove();
-      });
 
 
 
       $('.layer-list-manager-bar').on('click', '.operations', function(){
         that.mapOperations.toggle();
       }).on('click', '.add-layer', function(){
-        $(that.mapLayerList.find('.layer-list-manager-layer')[that.currentLayerIndex]).removeClass('selected');
 
-        that.currentLayerIndex = that.layers.length;
-
-        var newLayer = {
-          name: '未命名的图层',
-          objectList: []
-        };
-
-        
-        that.mapLayerList.append(that.mapLayerListRender({layers: [newLayer], fromIndex: that.layers.length}));
-
-        that.layers.push(newLayer);
-        that.mapObject.layerList = that.layers;
-
-        $(that.mapLayerList.find('.layer-list-manager-layer')[that.currentLayerIndex]).addClass('selected').removeClass('hide-content');
-
-        that.layerListDataController.updateMap(that.mapObject);
+        that.addParentNode();
       });
 
       that.mapOperations.on('click', '.create', function(){
@@ -1139,6 +1072,7 @@ var LayerManager = (function(){
       win.cesiumDrawer.addListener('polylineCreated', function(data){
         that._addObject(data.id, '未命名的折线', data.info, 'polyline');
       });
+
       win.cesiumDrawer.addListener('edited', function(data){
         if(data.positions){
           that._updateObject(data.id, data.positions, 'positions');
@@ -1152,43 +1086,41 @@ var LayerManager = (function(){
         that._addObject(data.id, data.text, {text: data.text, position: data.position, fillColor: data.fillColor}, 'label');
       });
     },
-    _fillHTML: function(){
-      this.mapTitle.html(this.mapObject.name);
-      this.mapLayerList.html(this.mapLayerListRender({layers: this.layers, fromIndex: 0}));
-    },
 
     _addObject: function(id, name, infos, type){
-      var layerDom = $(this.mapLayerList.children()[this.currentLayerIndex]);
 
-      var theLayer = this.layers[this.currentLayerIndex];
-      theLayer.objectList.push({
+      this.zTree.addNodes(this._getSelectedParentNode(), {
         id: id,
         name: name,
-        type: type,
-        cesiumInfos: infos
+        data: {
+          type: type,
+          cesiumInfos: infos
+        },
+        isParent: false
       });
 
-      var layerC = layerDom.find('.layer-list-manager-layer-c');
-      var html = '<div class="layer-list-manager-layer-i ' + type + '" data-id="' + id + '">' + name + '<span class="delete"></span></div>';
-      if(theLayer.objectList.length === 1){
-        layerC.html(html);
-      } else {
-        layerC.append(html);
-      }
-
-      this.layerListDataController.updateMap(this.mapObject);
+      this.saveTree();
     },
 
     _updateObject: function(id, value, key){
-      for(var i = 0; i < this.layers.length; i ++){
-        var layer = this.layers[i];
-        for(var j = 0; j < layer.objectList.length; j ++){
-          if(layer.objectList[j].id === id){
-            layer.objectList[j].cesiumInfos[key] = value;
-          }
-        }
+      // for(var i = 0; i < this.layers.length; i ++){
+      //   var layer = this.layers[i];
+      //   for(var j = 0; j < layer.objectList.length; j ++){
+      //     if(layer.objectList[j].id === id){
+      //       layer.objectList[j].cesiumInfos[key] = value;
+      //     }
+      //   }
+      // }
+      // this.layerListDataController.updateMap(this.mapObject);
+
+      var node = this.zTree.getNodesByParam('id', id, null);
+      if(node.length){
+        node = node[0];
+        node.data.cesiumInfos[key] = value;
+
+        this.saveTree();
       }
-      this.layerListDataController.updateMap(this.mapObject);
+
     },
 
     _autoLogin: function(){
@@ -1212,22 +1144,51 @@ var LayerManager = (function(){
 
     showMap: function(mapObject){
 
-      this.currentLayerIndex = 0;
-
-      if(this.layers){
-        this.removeAllObjects();
-      }
-
       this.mapObject = mapObject;
-      this.layers = mapObject.layerList;
 
-      this._fillHTML();
-
-      $(this.mapLayerList.children()[this.currentLayerIndex]).addClass('selected').removeClass('hide-content');
+      this.mapTitle.html(this.mapObject.name);
 
       this.dom.fadeIn(100);
 
-      this.showLayerObjects(0);
+      this.zTree.addNodes(null, mapObject.treeData[0]);
+
+      var cesiumNodes = [];
+      var simpleNodes = this.zTree.transformToArray(mapObject.treeData);
+      for(var i = 0; i < simpleNodes.length; i ++){
+        if(!simpleNodes[i].isParent){
+          cesiumNodes.push({
+            id: simpleNodes[i].id,
+            type: simpleNodes[i].data.type,
+            cesiumInfos: simpleNodes[i].data.cesiumInfos
+          });
+        }
+      }
+      this.showObjects(cesiumNodes);
+    },
+
+    _getSelectedParentNode: function(){
+      var nodes = this.zTree.getSelectedNodes();
+      if(nodes.length){
+        var node = nodes[0];
+        if(node.isParent){
+          return node;
+        } else {
+          node.getParentNode();
+        }
+      } else {
+        return this.zTree.getNodes()[0];
+      }
+    },
+
+    addParentNode: function(){
+      var pNode = this._getSelectedParentNode();
+      this.zTree.addNodes(pNode, {name: '新建文件夹', isParent: true});
+      this.saveTree();
+    },
+
+    saveTree: function(){
+      this.mapObject.treeData = this.zTree.getNodes();
+      this.layerListDataController.updateMap(this.mapObject);
     },
 
     removeAllObjects: function(){
@@ -1240,13 +1201,9 @@ var LayerManager = (function(){
       }
     },
 
-    showLayerObjects: function(layerIndex){
-      var layer = this.layers[layerIndex];
-      if(layer){
-        var objectList = layer.objectList;
-        for(var i = 0; i < objectList.length; i ++){
-          win.cesiumDrawer.drawOrShowObject(objectList[i]);
-        }
+    showObjects: function(objectList){
+      for(var i = 0; i < objectList.length; i ++){
+        win.cesiumDrawer.drawOrShowObject(objectList[i]);
       }
     },
 
