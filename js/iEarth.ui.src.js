@@ -20,9 +20,9 @@ var ImagerySettings = (function(){
       var that = this;
 
       that.ab = $('#imageAdjustBrightness').slider({
-        max: 100,
+        max: 10,
         min: 0,
-        value: 100,
+        value: 1,
         change: function(){
           that.adjust();
         }
@@ -64,9 +64,7 @@ var ImagerySettings = (function(){
       var imageryLayers = cesiumViewer.centralBody.imageryLayers;
       if(imageryLayers.length > 0) {
         var layer = imageryLayers.get(0);
-        console.log(layer);
-        console.log(this.ab.slider('value') / 100);
-        layer.brightness = this.ab.slider('value') / 100;
+        layer.brightness = this.ab.slider('value');
         layer.contrast = this.ac.slider('value') / 100;
         layer.hue = this.at.slider('value') / 100;
         layer.saturation = this.as.slider('value') / 100;

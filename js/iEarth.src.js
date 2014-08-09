@@ -932,6 +932,11 @@ var LayerManager = (function(){
     _initZTree: function(){
       var that = this;
       var setting = {
+        data: {
+          keep: {
+            parent: true
+          }
+        },
         edit: {
           drag: {
             inner: false
@@ -956,7 +961,11 @@ var LayerManager = (function(){
               win.cesiumDrawer.flyToObj(treeNode.id);
             }
           },
-          onRename: function(){
+          onRename: function(event, treeId, treeNode){
+            if(!treeNode.getParentNode()){
+              that.mapTitle.text(treeNode.name);
+              that.mapObject.name = treeNode.name;
+            }
             that.saveTree();
           },
           onRemove: function(event, treeId, treeNode){
@@ -996,7 +1005,7 @@ var LayerManager = (function(){
       }).on('click', '.open', function(){
         that.mapOperations.hide();
         if(that.layers){
-          that.removeAllObjects();
+          removeObjects();
         }
         that.layerListViewController.openMap(function(map){
           that.layerListDataController.setDefaultMap(map.id);
@@ -1006,7 +1015,7 @@ var LayerManager = (function(){
         that.mapOperations.hide();
         that.layerListDataController.removeMap(that.mapObject.id);
         if(that.layers){
-          that.removeAllObjects();
+          removeObjects();
         }
         var lastEditMap = that.layerListDataController.getLastEditMap();
         that.showMap(lastEditMap);
@@ -1038,7 +1047,7 @@ var LayerManager = (function(){
                   that.layerListDataController.setDefaultMap(map.id);
 
                   if(that.layers){
-                    that.removeAllObjects();
+                    removeObjects();
                   }
                 }catch(e){
 
@@ -1056,6 +1065,11 @@ var LayerManager = (function(){
         that.mapEditor.editMap(that.mapObject.name, function(mapName){
           that.mapObject.name = mapName;
           that.mapTitle.text(mapName);
+          if(that.zTree.getNodes().length){
+            var node = that.zTree.getNodes()[0];
+            node.name = mapName;
+            that.zTree.updateNode(node);
+          }
           that.layerListDataController.updateMap(that.mapObject);
         });
       });
@@ -1103,15 +1117,6 @@ var LayerManager = (function(){
     },
 
     _updateObject: function(id, value, key){
-      // for(var i = 0; i < this.layers.length; i ++){
-      //   var layer = this.layers[i];
-      //   for(var j = 0; j < layer.objectList.length; j ++){
-      //     if(layer.objectList[j].id === id){
-      //       layer.objectList[j].cesiumInfos[key] = value;
-      //     }
-      //   }
-      // }
-      // this.layerListDataController.updateMap(this.mapObject);
 
       var node = this.zTree.getNodesByParam('id', id, null);
       if(node.length){
@@ -1120,7 +1125,6 @@ var LayerManager = (function(){
 
         this.saveTree();
       }
-
     },
 
     _autoLogin: function(){
@@ -1128,18 +1132,6 @@ var LayerManager = (function(){
       if(userObj){
         this._onUserLogin(userObj);
       }
-    },
-
-    updateLayerName: function(newLayerName){
-      var layerDom = this.mapLayerList.children()[this.currentLayerIndex];
-      var h4 = $(layerDom).find('h4');
-      h4.text(newLayerName);
-
-      this.layers[this.currentLayerIndex].name = newLayerName;
-
-      this.mapObject.layerList = this.layers;
-
-      this.layerListDataController.updateMap(this.mapObject);
     },
 
     showMap: function(mapObject){
@@ -1154,6 +1146,7 @@ var LayerManager = (function(){
 
       var cesiumNodes = [];
       var simpleNodes = this.zTree.transformToArray(mapObject.treeData);
+
       for(var i = 0; i < simpleNodes.length; i ++){
         if(!simpleNodes[i].isParent){
           cesiumNodes.push({
@@ -1191,27 +1184,28 @@ var LayerManager = (function(){
       this.layerListDataController.updateMap(this.mapObject);
     },
 
-    removeAllObjects: function(){
-      for(var i = 0; i < this.layers.length; i ++){
-        var layer = this.layers[i];
-        var objectList = layer.objectList;
-        for(var i = 0; i < objectList.length; i ++){
-          win.cesiumDrawer.removeObject(objectList[i].id);
+    removeObjects: function(){
+      var cesiumNodes = [];
+      var simpleNodes = this.zTree.transformToArray(this.mapObject.treeData);
+
+      for(var i = 0; i < simpleNodes.length; i ++){
+        if(!simpleNodes[i].isParent){
+          cesiumNodes.push({
+            id: simpleNodes[i].id,
+            type: simpleNodes[i].data.type,
+            cesiumInfos: simpleNodes[i].data.cesiumInfos
+          });
         }
+      }
+
+      for(var i = 0; i < cesiumNodes.length; i ++){
+        win.cesiumDrawer.removeObject(cesiumNodes[i].id);
       }
     },
 
     showObjects: function(objectList){
       for(var i = 0; i < objectList.length; i ++){
         win.cesiumDrawer.drawOrShowObject(objectList[i]);
-      }
-    },
-
-    hideLayerObjects: function(layerIndex){
-      var layer = this.layers[layerIndex];
-      var objectList = layer.objectList;
-      for(var i = 0; i < objectList.length; i ++){
-        win.cesiumDrawer.hideObject(objectList[i].id);
       }
     },
 
@@ -1238,7 +1232,7 @@ var LayerManager = (function(){
       $('#layerTools').hide();
       this.dom.fadeOut(100);
 
-      this.removeAllObjects();
+      this.removeObjects();
     },
     _login: function(){
       var that = this;
