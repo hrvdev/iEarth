@@ -4,14 +4,6 @@ var ImagerySettings = (function(){
   var ImagerySettingsClass = function(){
     this.dom = $('#imageryAdjust');
 
-    this.defalutValue = {
-      ab: 100,
-      ac: 100,
-      at: 0,
-      as: 100,
-      ag: 100
-    };
-
     this.init();
   };
 
@@ -20,15 +12,15 @@ var ImagerySettings = (function(){
       var that = this;
 
       that.ab = $('#imageAdjustBrightness').slider({
-        max: 10,
+        max: 300,
         min: 0,
-        value: 1,
+        value: 100,
         change: function(){
           that.adjust();
         }
       });
       that.ac = $('#imageAdjustContrast').slider({
-        max: 100,
+        max: 300,
         min: 0,
         value: 100,
         change: function(){
@@ -36,7 +28,7 @@ var ImagerySettings = (function(){
         }
       });
       that.at = $('#imageAdjustTinct').slider({
-        max: 100,
+        max: 300,
         min: 0,
         value: 0,
         change: function(){
@@ -44,7 +36,7 @@ var ImagerySettings = (function(){
         }
       });
       that.as = $('#imageAdjustSaturation').slider({
-        max: 100,
+        max: 300,
         min: 0,
         value: 100,
         change: function(){
@@ -52,19 +44,29 @@ var ImagerySettings = (function(){
         }
       });
       that.ag = $('#imageAdjustGamma').slider({
-        max: 100,
+        max: 300,
         min: 0,
         value: 100,
         change: function(){
           that.adjust();
         }
       });
+
+      that.dom.on('click', '.tit span', function(){
+        console.log('a');
+        that.ab.slider('value', 100);
+        that.ac.slider('value', 100);
+        that.at.slider('value', 0);
+        that.as.slider('value', 100);
+        that.ag.slider('value', 100);
+        that.adjust();
+      });
     },
     adjust: function(){
       var imageryLayers = cesiumViewer.centralBody.imageryLayers;
       if(imageryLayers.length > 0) {
         var layer = imageryLayers.get(0);
-        layer.brightness = this.ab.slider('value');
+        layer.brightness = this.ab.slider('value') / 100;
         layer.contrast = this.ac.slider('value') / 100;
         layer.hue = this.at.slider('value') / 100;
         layer.saturation = this.as.slider('value') / 100;
