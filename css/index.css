@@ -132,7 +132,7 @@ body{
   line-height: 30px;
   text-align: center;
   z-index: 10;
-  background-image: -webkit-linear-gradient(top,rgba(0, 0, 0, 0.35),rgba(0, 0, 0, 0.85))
+  background-image: -webkit-linear-gradient(top,rgba(0, 0, 0, 0.05),rgba(0, 0, 0, 0.15));
   color: #fff;
 }
 .mini-map-mask i{
@@ -394,9 +394,11 @@ body{
   opacity: 0;
   right: 74px;
   -webkit-transition: all 0.2s ease-in;
+  pointer-events: none;
 }
 .image-adj.show{
   opacity: 1;
+  pointer-events: auto;
 }
 .image-adj .tit{
   line-height: 25px;

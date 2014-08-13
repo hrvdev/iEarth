@@ -53,7 +53,6 @@ var ImagerySettings = (function(){
       });
 
       that.dom.on('click', '.tit span', function(){
-        console.log('a');
         that.ab.slider('value', 100);
         that.ac.slider('value', 100);
         that.at.slider('value', 0);

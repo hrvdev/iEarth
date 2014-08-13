@@ -802,14 +802,25 @@ var LayerListDataController = (function(){
 
       return map;
     },
+    addMapObject: function(mapObject){
+      var id = utils.uuid(MAP_ID_PREFIX);
+      var map = {
+        id: id,
+        name: mapObject.name,
+        ctime: Date.now(),
+        treeData: mapObject.treeData
+      };
+
+      this.allMaps.splice(0, 0, map.id);
+
+      storage.setItem(ALL_MAP_KEY + this.userid, JSON.stringify(this.allMaps));
+
+      storage.setItem(MAP_LAYER_KEY + map.id, JSON.stringify(map));
+
+      return map;
+    },
     updateMap: function(map){
       storage.setItem(MAP_LAYER_KEY + map.id, JSON.stringify(map));
-    },
-    addLayerToMap: function(layerName, mapId){
-
-    },
-    addObjectToLayer: function(object, layerId){
-
     },
     removeMap: function(mapId){
       storage.removeItem(MAP_LAYER_KEY + mapId);
@@ -819,12 +830,6 @@ var LayerListDataController = (function(){
         storage.removeItem(LAST_MAP_KEY + this.userid);
         storage.setItem(ALL_MAP_KEY + this.userid, JSON.stringify(this.allMaps));
       }
-    },
-    removeLayer: function(layerId){
-
-    },
-    removeObject: function(objectId){
-
     },
     getAllMaps: function(){
       var maps = [];
@@ -1004,19 +1009,12 @@ var LayerManager = (function(){
         });
       }).on('click', '.open', function(){
         that.mapOperations.hide();
-        if(that.layers){
-          removeObjects();
-        }
         that.layerListViewController.openMap(function(map){
-          that.layerListDataController.setDefaultMap(map.id);
           that.showMap(map);
         });
       }).on('click', '.delete', function(){
         that.mapOperations.hide();
         that.layerListDataController.removeMap(that.mapObject.id);
-        if(that.layers){
-          removeObjects();
-        }
         var lastEditMap = that.layerListDataController.getLastEditMap();
         that.showMap(lastEditMap);
       }).on('click', '.export', function(){
@@ -1042,13 +1040,10 @@ var LayerManager = (function(){
                 try{
                   var fileJSON = JSON.parse(fileContent);
                   
-                  var map = that.layerListDataController.addMapWithLayers(fileJSON);
+                  var map = that.layerListDataController.addMapObject(fileJSON);
                   that.showMap(map);
                   that.layerListDataController.setDefaultMap(map.id);
 
-                  if(that.layers){
-                    removeObjects();
-                  }
                 }catch(e){
 
                 }
@@ -1070,7 +1065,7 @@ var LayerManager = (function(){
             node.name = mapName;
             that.zTree.updateNode(node);
           }
-          that.layerListDataController.updateMap(that.mapObject);
+          that.saveTree();
         });
       });
 
@@ -1135,8 +1130,14 @@ var LayerManager = (function(){
     },
 
     showMap: function(mapObject){
+      if(this.zTree.getNodes().length){
+        this.removeObjects();
+        this.zTree.removeNode(this.zTree.getNodes()[0]);
+      }
 
       this.mapObject = mapObject;
+
+      this.layerListDataController.setDefaultMap(mapObject.id);
 
       this.mapTitle.html(this.mapObject.name);
 
