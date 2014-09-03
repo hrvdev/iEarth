@@ -668,13 +668,14 @@ var CesiumEditor = (function(){
           input.style.position = 'absolute';
           input.style.height = '21px';
           input.style.width = '125px';
-          input.style.top = data.position.y - 6 + 'px';
-          input.style.left = data.position.x + 'px';
+          input.style.top = data.position.y - 17 + 'px';
+          input.style.left = data.position.x - 2 + 'px';
           input.style.backgroundColor = 'rgba(0,0,0,0)';
           input.style.outline = 'none';
           input.style.border = 'none';
           input.style.borderBottom = '1px solid #fff';
           input.style.color = 'white';
+          input.style.fontSize = '14px';
 
           scene.canvas.parentNode.insertBefore(input);
 

@@ -994,11 +994,29 @@ var LayerManager = (function(){
       var that = this;
 
 
+      var mapOperationsTimeout = null;
+
+      $('.layer-list-manager-bar .operations').on('mouseout', function(){
+        win.clearTimeout(mapOperationsTimeout);
+        mapOperationsTimeout = win.setTimeout(function(){
+          that.mapOperations.hide();
+        }, 2000);
+      });
+
+      that.mapOperations.on('mouseover', function(){
+        win.clearTimeout(mapOperationsTimeout);
+      }).on('mouseout', function(){
+        win.clearTimeout(mapOperationsTimeout);
+        mapOperationsTimeout = win.setTimeout(function(){
+          that.mapOperations.hide();
+        }, 200);
+      });
+
 
       $('.layer-list-manager-bar').on('click', '.operations', function(){
-        that.mapOperations.toggle();
+        // that.mapOperations.toggle();
+        that.mapOperations.show();
       }).on('click', '.add-layer', function(){
-
         that.addParentNode();
       });
 
@@ -1285,16 +1303,25 @@ var MapTools = (function(){
       });
 
       that.layerToolsLabel.on('click', function(){
-        win.uiApp.enableLocationShower = false;
-        that.allTools.removeClass('selected');
-        $(this).addClass('selected');
-        win.cesiumDrawer.startDrawingLabel();
+        
+        if($(this).hasClass('selected')){
+          win.uiApp.enableLocationShower = true;
+          that.allTools.removeClass('selected');
+          that.layerToolsHand.addClass('selected');
+          win.cesiumDrawer.stopDrawing();
+        } else {
+          win.uiApp.enableLocationShower = false;
+          that.allTools.removeClass('selected');
+          $(this).addClass('selected');
+          win.cesiumDrawer.startDrawingLabel();
+        }
       });
 
       win.cesiumDrawer.addListener('labelCreated', function(){
-        win.uiApp.enableLocationShower = true;
-        that.allTools.removeClass('selected');
-        that.layerToolsHand.addClass('selected');
+        // win.cesiumDrawer.startDrawingLabel();
+        setTimeout(function(){
+          win.cesiumDrawer.startDrawingLabel();
+        }, 100);
       });
 
       win.cesiumDrawer.addListener('labelCreateCancel', function(){
