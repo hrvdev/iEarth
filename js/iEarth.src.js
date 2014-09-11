@@ -19,6 +19,16 @@ var storage = (function(){
 
 var utils = (function(){
 
+  var ellipsoid = Cesium.Ellipsoid.WGS84;
+
+  function cartesian2Coord(cartesian, fixedNumber){
+    var cartographic = ellipsoid.cartesianToCartographic(cartesian);
+    return {
+      longitude: Cesium.Math.toDegrees(cartographic.longitude).toFixed(fixedNumber),
+      latitude: Cesium.Math.toDegrees(cartographic.latitude).toFixed(fixedNumber)
+    };
+  }
+
   function extend(dest, source){
     for(var key in source){
       dest[key] = source[key];
@@ -65,7 +75,8 @@ var utils = (function(){
   return {
     extend: extend,
     uuid: uuid,
-    readableDate: readableDate
+    readableDate: readableDate,
+    cartesian2Coord: cartesian2Coord
   };
 
 })();
@@ -984,7 +995,6 @@ var LayerManager = (function(){
             }
             that.saveTree();
           }
-
         }
       };
 
@@ -1036,6 +1046,7 @@ var LayerManager = (function(){
         var lastEditMap = that.layerListDataController.getLastEditMap();
         that.showMap(lastEditMap);
       }).on('click', '.export', function(){
+        that.convertMapObject();
         var blob = new Blob([JSON.stringify(that.mapObject)], {type: "text/plain;charset=utf-8"});
         saveAs(blob, that.mapObject.name + '.json');
         that.mapOperations.hide();
@@ -1261,6 +1272,18 @@ var LayerManager = (function(){
     },
 
     start: function(){
+    },
+    convertMapObject: function(){
+      var nodes = this.zTree.transformToArray(this.zTree.getNodes());
+      for(var i = 0; i < nodes.length; i ++ ){
+        if(nodes[i].data){
+          if(nodes[i].data.type == 'label'){
+            nodes[i].data.cesiumInfos.lookAt = utils.cartesian2Coord(new Cesium.Cartesian3(nodes[i].data.cesiumInfos.position.x, nodes[i].data.cesiumInfos.position.y, nodes[i].data.cesiumInfos.position.z), 10);
+            console.log(nodes[i]);
+          }
+        }
+      }
+      this.mapObject.treeNode = this.zTree.getNodes();
     }
   });
 
